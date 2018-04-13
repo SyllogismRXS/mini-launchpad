@@ -1,0 +1,8 @@
+[local-ftp]
+fqdn = localhost:21
+login = anonymous
+progress_indicator = 2
+passive_ftp = 1
+incoming = ./
+method = ftp
+allow_unsigned_uploads = 1

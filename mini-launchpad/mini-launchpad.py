@@ -51,6 +51,11 @@ class MiniLaunchpad (FileSystemEventHandler):
         self.observer.schedule(self.event_handler, path, recursive=True)
         self.observer.start()
 
+    def setup_pbuilder(self):
+        # Take list of distributions / architectures and setup pbuilder
+        # environments
+        pass
+
     def process_upload(self):
         print('Waiting 2 seconds...')
         time.sleep(2)
@@ -95,9 +100,6 @@ class MiniLaunchpad (FileSystemEventHandler):
 
             cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
                   "--configfile "+config_file+" " \
-                  "--distribution "+dist+" " \
-                  "--architecture "+arch+" --basetgz " \
-                  "/var/cache/pbuilder/"+dist+"-"+arch+"-base.tgz " \
                   "--buildresult ./ " + dsc_file
 
             print('Command: %s', cmd)
@@ -106,7 +108,8 @@ class MiniLaunchpad (FileSystemEventHandler):
             dput_success = False
             for file in os.listdir(tmp_dir):
                 if file.endswith(arch + ".changes"):
-                    # TODO make --config argument configurable
+                    # TODO make --config argument and dput name (gtri-binary)
+                    # configurable
                     dput_cmd = "dput --config /home/syllogismrxs/.dput.cf " + \
                                "gtri-binary " + file
                     print("dput command: %s" % dput_cmd)
@@ -130,5 +133,5 @@ class MiniLaunchpad (FileSystemEventHandler):
         self.observer.join()
 
 if __name__ == "__main__":
-    ml = MiniLaunchpad()
-    ml.run()
+    mlp = MiniLaunchpad()
+    mlp.run()

@@ -5,7 +5,7 @@ services:
   mini-dinstall:
     build: mini-dinstall
     volumes:
-      - wwwroot-mini-dinstall:/root/htdocs      
+      - wwwroot-mini-dinstall:/root/htdocs
     ports:
       - "8021:21"
       - "30000-30009:30000-30009"
@@ -15,10 +15,17 @@ services:
 
   mini-dinstall-web:
     image: httpd
-    volumes:      
+    volumes:
       - wwwroot-mini-dinstall:/usr/local/apache2/htdocs
     ports:
       - "80:80"
 
+  mini-launchpad:
+    build: mini-launchpad
+    privileged: true
+    volumes:
+      - pbuilder-cache:/var/cache/pbuilder
+
 volumes:
   wwwroot-mini-dinstall:
+  pbuilder-cache:

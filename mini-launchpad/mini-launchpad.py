@@ -33,10 +33,24 @@ class MiniLaunchpad (FileSystemEventHandler):
         #add = parser.add_argument
         #add('-c', '--csv_filename', help='CSV filename. (e.g., trajectory.csv)', required=True)
         #args = parser.parse_args()
-
+        parser = argparse.ArgumentParser(description='Your Local Build Server of Awesomeness')
+        parser.addargument('--dist', nargs='+', default='xenial',type=string,
+                           help='Distributions you want to support')
+        parser.addargument('--arch', nargs='+', default='amd64',type=string,
+                           help='Architectures you want to support')
+        parser.addargument('--ftp-loc', default='/home/ftp', type=string,
+                           help='FTP server location')
+        parser.addargument('--pbuilder-config', type=string,
+                           default=os.path.expanduser('~/.pbuilderrc'),
+                           help='pbuilder config file location')
+        parser.addargument('--dput-config', type=string,
+                           defualt=os.path.expanduser('~/.dput.cf'),
+                           help='dput config file location')
+        parser.addargument('--dput-name', type=string, default='thingymaboop',
+                           help='dput host')
         self.file_list = []
 
-        self.watch('/home/ftp') # TODO use argument
+        self.watch(args.ftp_loc)
 
     def on_any_event(self, event):
         if event.event_type == 'created':
@@ -68,11 +82,9 @@ class MiniLaunchpad (FileSystemEventHandler):
             shutil.move(f, input_files_tmp_dir + "/")
         self.file_list = []
 
-        # TODO use arguments to specify distribution and architectures to build
-        self.build_package(input_files_tmp_dir, "xenial", "amd64")
-        self.build_package(input_files_tmp_dir, "xenial", "armhf")
-        self.build_package(input_files_tmp_dir, "xenial", "arm64")
-        self.build_package(input_files_tmp_dir, "xenial", "i386")
+        for dist in args.dist:
+            for arch in args.arch:
+                self.build_package(input_files_tmp_dir, dist,arch)
 
         shutil.rmtree(input_files_tmp_dir)
 
@@ -96,7 +108,7 @@ class MiniLaunchpad (FileSystemEventHandler):
                 print('Cannot find dsc file')
                 return
 
-            config_file= "/home/syllogismrxs/.pbuilderrc" # TODO configurable
+            config_file= args.pbuilder_config
 
             cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
                   "--configfile "+config_file+" " \
@@ -110,8 +122,8 @@ class MiniLaunchpad (FileSystemEventHandler):
                 if file.endswith(arch + ".changes"):
                     # TODO make --config argument and dput name (gtri-binary)
                     # configurable
-                    dput_cmd = "dput --config /home/syllogismrxs/.dput.cf " + \
-                               "gtri-binary " + file
+                    dput_cmd = "dput --config " + args.dput_config + " " +\
+                               args.dput_name + " " + file
                     print("dput command: %s" % dput_cmd)
                     subprocess.call(dput_cmd, shell=True)
                     dput_success = True

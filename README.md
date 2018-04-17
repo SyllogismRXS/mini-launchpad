@@ -8,25 +8,27 @@ package builds.
 
 # Setup Instructions
 
-TODO: Eventually, I want a user to be able to git clone this repo and just be
-able to run a docker-compose command to start up mini-launchpad.
+Build the mini-dinstall and mini-launchpad images:
+
+    $ cd docker
+    $ docker-compose -p mlp build mini-launchpad mini-dinstall
+    
+Setup the pbuilder environments inside of the mini-launchpad container / volume
+(This can take a long time and it will be running in "privileged" mode):
+    
+    $ docker-compose -p mlp run mini-launchpad
+    
+If the previous docker-compose command exited without error, we can now startup
+the entire mini-launchpad system:
+
+    $ docker-compose -p mlp up -d mini-launchpad mini-dinstall mini-dinstall-web
 
 The user has to edit the docker.compose.yml file to set the PUBLICHOST to their
 IP address. It defaults to 127.0.0.1
 
-Build docker images and run:
-
-    $ cd docker
-    $ docker-compose -p mlp build mini-dinstall
-    $ docker-compose -p mlp up -d mini-dinstall mini-dinstall-web
-    
 Stop docker processes:
 
     $ docker-compose -p mlp stop
-
-TODO: We need to figure out if we can run pbuilder inside of docker in a safe
-way. For now, only mini-dinstall, its pure-ftpd server, and the apache2 server
-that delivers the package binaries are in docker.
 
 # Other Related Projects
 

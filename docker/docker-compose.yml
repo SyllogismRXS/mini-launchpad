@@ -21,7 +21,9 @@ services:
       - "80:80"
 
   mini-launchpad:
-    build: mini-launchpad
+    build:
+      context: ../
+      dockerfile: ./docker/mini-launchpad/Dockerfile
     privileged: true
     volumes:
       - pbuilder-cache:/var/cache/pbuilder

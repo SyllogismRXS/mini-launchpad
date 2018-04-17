@@ -34,20 +34,23 @@ class MiniLaunchpad (FileSystemEventHandler):
         #add('-c', '--csv_filename', help='CSV filename. (e.g., trajectory.csv)', required=True)
         #args = parser.parse_args()
         parser = argparse.ArgumentParser(description='Your Local Build Server of Awesomeness')
-        parser.addargument('--dist', nargs='+', default='xenial',type=string,
+        add = parser.add_argument
+        add('--dist', nargs='+', default='xenial',
                            help='Distributions you want to support')
-        parser.addargument('--arch', nargs='+', default='amd64',type=string,
+        add('--arch', nargs='+', default='amd64',
                            help='Architectures you want to support')
-        parser.addargument('--ftp-loc', default='/home/ftp', type=string,
+        add('--ftp-loc', default='/home/ftp',
                            help='FTP server location')
-        parser.addargument('--pbuilder-config', type=string,
+        add('--pbuilder-config',
                            default=os.path.expanduser('~/.pbuilderrc'),
                            help='pbuilder config file location')
-        parser.addargument('--dput-config', type=string,
-                           defualt=os.path.expanduser('~/.dput.cf'),
+        add('--dput-config', default=os.path.expanduser('~/.dput.cf'),
                            help='dput config file location')
-        parser.addargument('--dput-name', type=string, default='thingymaboop',
+        add('--dput-name', default='thingymaboop',
                            help='dput host')
+
+        args = parser.parse_args()
+
         self.file_list = []
 
         self.watch(args.ftp_loc)

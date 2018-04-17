@@ -47,17 +47,24 @@ write_basic_package_version_file(
 ###############################################################################
 # Define install targets
 ###############################################################################
-install (DIRECTORY share/cmake
-  DESTINATION share
+configure_file(${CMAKE_SOURCE_DIR}/etc/systemd/system/mini-launchpad.service.in
+  ${CMAKE_BINARY_DIR}/etc/systemd/system/mini-launchpad.service)
+
+install (FILES ${CMAKE_BINARY_DIR}/etc/systemd/system/mini-launchpad.service
+  DESTINATION /etc/systemd/system/
   )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MiniLaunchpadConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/MiniLaunchpadConfigVersion.cmake
-  DESTINATION lib/cmake/MiniLaunchpad
+install (FILES mini-launchpad/mini-launchpad
+  DESTINATION bin
+  PERMISSIONS WORLD_READ WORLD_EXECUTE
   )
 
+# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MiniLaunchpadConfig.cmake
+#   ${CMAKE_CURRENT_BINARY_DIR}/MiniLaunchpadConfigVersion.cmake
+#   DESTINATION lib/cmake/MiniLaunchpad
+#   )
 ###############################################################################
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry ~/.cmake)
 ###############################################################################
-export(PACKAGE ${PROJECT_NAME})
+#export(PACKAGE ${PROJECT_NAME})

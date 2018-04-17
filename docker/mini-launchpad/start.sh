@@ -12,3 +12,9 @@ do
         DIST=${dist} ARCH=${arch} pbuilder --update
     fi
 done
+
+echo "============================================="
+echo "pbuilder environment configuration complete"
+echo "============================================="
+
+/usr/bin/mini-launchpad

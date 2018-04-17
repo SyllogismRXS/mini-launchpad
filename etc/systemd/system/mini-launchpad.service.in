@@ -1,0 +1,15 @@
+[Unit]
+Description=mini-launchpad is a debian package builder (pbuilder-based)
+After=syslog.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root
+ExecStart=@CMAKE_INSTALL_PREFIX@/bin/mini-launchpad
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

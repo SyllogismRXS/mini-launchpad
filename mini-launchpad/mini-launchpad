@@ -49,13 +49,13 @@ class MiniLaunchpad (FileSystemEventHandler):
         add('--dput-name', default='thingymaboop',
                            help='dput host')
 
-        args = parser.parse_args()
+        self.args = parser.parse_args()
 
         # TODO check for existence of dput.cf, pbuilder-config
 
         self.file_list = []
 
-        self.watch(args.ftp_loc)
+        self.watch(self.args.ftp_loc)
 
     def on_any_event(self, event):
         if event.event_type == 'created':
@@ -87,8 +87,8 @@ class MiniLaunchpad (FileSystemEventHandler):
             shutil.move(f, input_files_tmp_dir + "/")
         self.file_list = []
 
-        for dist in args.dist:
-            for arch in args.arch:
+        for dist in self.args.dist:
+            for arch in self.args.arch:
                 self.build_package(input_files_tmp_dir, dist,arch)
 
         shutil.rmtree(input_files_tmp_dir)
@@ -113,7 +113,7 @@ class MiniLaunchpad (FileSystemEventHandler):
                 print('Cannot find dsc file')
                 return
 
-            config_file= args.pbuilder_config
+            config_file= self.args.pbuilder_config
 
             cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
                   "--configfile "+config_file+" " \
@@ -127,8 +127,8 @@ class MiniLaunchpad (FileSystemEventHandler):
                 if file.endswith(arch + ".changes"):
                     # TODO make --config argument and dput name (gtri-binary)
                     # configurable
-                    dput_cmd = "dput --config " + args.dput_config + " " +\
-                               args.dput_name + " " + file
+                    dput_cmd = "dput --config " + self.args.dput_config + " " +\
+                               self.args.dput_name + " " + file
                     print("dput command: %s" % dput_cmd)
                     subprocess.call(dput_cmd, shell=True)
                     dput_success = True

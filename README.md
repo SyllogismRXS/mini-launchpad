@@ -11,7 +11,7 @@ package builds.
 Build the mini-dinstall and mini-launchpad images:
 
     $ cd docker
-    $ docker-compose -p mlp build mini-launchpad mini-dinstall
+    $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad mini-dinstall
     
 Setup the pbuilder environments inside of the mini-launchpad container / volume
 (This can take a long time and it will be running in "privileged" mode):
@@ -21,7 +21,7 @@ Setup the pbuilder environments inside of the mini-launchpad container / volume
 If the previous docker-compose command exited without error, we can now startup
 the entire mini-launchpad system:
 
-    $ docker-compose -p mlp up -d mini-launchpad mini-dinstall mini-dinstall-web
+    $ docker-compose -p mlp up -d mini-launchpad mini-dinstall-web
 
 The user has to edit the docker.compose.yml file to set the PUBLICHOST to their
 IP address. It defaults to 127.0.0.1

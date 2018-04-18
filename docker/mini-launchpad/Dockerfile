@@ -30,7 +30,7 @@ RUN mv /root/mini-launchpad/docker/mini-launchpad/pbuilderrc /root/.pbuilderrc &
 
 # Install the service
 WORKDIR /root/mini-launchpad
-RUN mkdir ./build
+RUN mkdir -p ./build
 WORKDIR build
 RUN cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make install
 

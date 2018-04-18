@@ -4,7 +4,7 @@ services:
   pure-ftpd-1:
     build: pure-ftpd
     ports:
-      - "8021:21"
+      - "21:21"
       - "30000-30009:30000-30009"
     environment:
       PUBLICHOST: "127.0.0.1"
@@ -26,8 +26,6 @@ services:
   # Serves the apt-get repo to other users
   mini-dinstall:
     build: mini-dinstall
-    depends_on:
-      - mini-launchpad
     volumes:
       - wwwroot-mini-dinstall:/root/htdocs
     ports:
@@ -45,8 +43,6 @@ services:
       - wwwroot-mini-dinstall:/usr/local/apache2/htdocs
     ports:
       - "80:80"
-
-  
 
 volumes:
   ftp-incoming-1:

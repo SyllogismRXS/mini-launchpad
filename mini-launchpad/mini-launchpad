@@ -39,7 +39,7 @@ class MiniLaunchpad (FileSystemEventHandler):
                            help='Distributions you want to support')
         add('--arch', nargs='+', default='amd64',
                            help='Architectures you want to support')
-        add('--ftp-loc', default='/home/ftp',
+        add('--ftp-loc', default='.',
                            help='FTP server location')
         add('--pbuilder-config',
                            default=os.path.expanduser('~/.pbuilderrc'),
@@ -50,6 +50,8 @@ class MiniLaunchpad (FileSystemEventHandler):
                            help='dput host')
 
         args = parser.parse_args()
+
+        # TODO check for existence of dput.cf, pbuilder-config
 
         self.file_list = []
 
@@ -130,7 +132,6 @@ class MiniLaunchpad (FileSystemEventHandler):
                     print("dput command: %s" % dput_cmd)
                     subprocess.call(dput_cmd, shell=True)
                     dput_success = True
-                    #shutil.move(file, "/home/syllogismrxs/python/temp/")
 
             if not dput_success:
                 print('Failed to dput')

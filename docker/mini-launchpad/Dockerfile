@@ -24,6 +24,10 @@ RUN echo 'USENETWORK=yes' | sudo tee -a /etc/pbuilderrc
 RUN mkdir -p /root/mini-launchpad
 COPY . /root/mini-launchpad/
 
+# Move .pbuilderrc and .dput.cf to their standard locations
+RUN mv /root/mini-launchpad/docker/mini-launchpad/pbuilderrc /root/.pbuilderrc && \
+    mv /root/mini-launchpad/docker/mini-launchpad/dput.cf /root/.dput.cf
+
 # Install the service
 WORKDIR /root/mini-launchpad
 RUN mkdir ./build

@@ -1,5 +1,5 @@
 [local-ftp]
-fqdn = localhost:21
+fqdn = mini-dinstall:8121
 login = anonymous
 progress_indicator = 2
 passive_ftp = 1

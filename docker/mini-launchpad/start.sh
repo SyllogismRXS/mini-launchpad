@@ -8,10 +8,10 @@ for arch in "${arch_array[@]}"
 do
     if [ ! -f /var/cache/pbuilder/${dist}-${arch}-base.tgz ]; then
         DIST=${dist} ARCH=${arch} pbuilder --create \
-            --configfile=/root/.pbuilderrc
+            --configfile /root/.pbuilderrc
     else
         DIST=${dist} ARCH=${arch} pbuilder --update \
-            --configfile=/root/.pbuilderrc
+            --configfile /root/.pbuilderrc
     fi
 done
 

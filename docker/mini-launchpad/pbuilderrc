@@ -11,11 +11,17 @@ fi
 if [ "${ARCH}" == "armhf" ] || [ "${ARCH}" == "arm64" ]; then
    MIRRORSITE="http://ports.ubuntu.com/ubuntu-ports/"
    COMPONENTS="main restricted universe multiverse"
-   OTHERMIRROR="deb http://ports.ubuntu.com/ubuntu-ports/ ${DIST} main restricted universe multiverse | deb [trusted=yes] http://repos.rcn-ee.com/ubuntu/ ${DIST} main"
+   OTHERMIRROR="deb http://ports.ubuntu.com/ubuntu-ports/ ${DIST} main restricted universe multiverse
+   |deb http://ports.ubuntu.com/ubuntu-ports/ ${DIST}-updates main universe multiverse
+   |deb [trusted=yes] http://repos.rcn-ee.com/ubuntu/ ${DIST} main
+   |deb [trusted=yes] http://ppa.launchpad.net/kevin-demarco/scrimmage/ubuntu ${DIST} main"
 
 elif [ "${ARCH}" == "amd64" ] || [ "${ARCH}" == "i386" ]; then
    MIRRORSITE="http://us.archive.ubuntu.com/ubuntu/"
    COMPONENTS="main restricted universe multiverse"
+
+   OTHERMIRROR="deb [trusted=yes] http://ppa.launchpad.net/kevin-demarco/scrimmage/ubuntu ${DIST} main
+   |deb http://us.archive.ubuntu.com/ubuntu/ ${DIST}-updates main universe multiverse"
 fi
 
 if [ "$ARCH" == "armhf" ] && [ "$(dpkg --print-architecture)" != "armhf" ]; then
@@ -42,4 +48,47 @@ ARCHITECTURE="$ARCH"
 #NAME="$OS-$DIST-$ARCH"
 #APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
 #BUILDPLACE="/var/cache/pbuilder/build"
+
+### Hook Directory Option: ###
+# Lifted from https://wiki.ubuntu.com/PbuilderHowto#Running_a_Shell_When_Build_Fails_.28Intro_to_Hook_Scripts.29
+# This is not necessary but provides some helpful abilities
+# First run the following command to create a symlink
+#   sudo ln -s path/to/CMakeDebSrc/hook.d/ /var/cache/pbuilder/hook.d
+
+# Add the following to pbuilderrc:
 #HOOKDIR="/var/cache/pbuilder/hook.d/"
+
+# Might need to make the following scripts executable with the following command
+#   sudo chmod a+x C10shell D05depends
+
+# Hook Scripts:
+#   C10shell - drops into chroot shell if there is an error in pbuilder
+#   D05depends - Needed for local packages. See below
+
+
+### Local Packages in the build ###
+# Lifted from https://wiki.debian.org/PbuilderTricks#How_to_include_local_packages_in_the_build
+
+# Prerequisites:
+# dependency_dir=/path/to/dir - path to local location of debian packages
+# D05depends script points to dependency_dir
+
+# Add the following to pbuilderrc:
+#BINDMOUNTS=$dependency_dir
+#OTHERMIRROR="|deb [trusted=yes] file://${dependency_dir} ./"
+#EXTRAPACKAGES="apt-utils"
+#HOOKDIR="/var/cache/pbuilder/hook.d/"
+
+# Create empty Packages file in local repository
+# touch $dependency_dir/Packages
+
+# Check that D05depends points to the right directory
+
+# Update tarballs:
+# sudo DIST=xenial ARCH=arm64 pbuilder --update --override-config
+
+# IMPORTANT DEBUGGING NOTE: If you are getting broken packages from apt
+# try logging into the chroot with sudo DIST=xenial ARCH=(whatever arch) pbuilder --login
+# Run apt-cache policy (package-name-here)
+# compare with apt-cache policy (package-name-here) outside of chroot
+# If they are different, add the missing components to OTHERMIRROR

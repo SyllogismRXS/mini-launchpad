@@ -38,6 +38,9 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
+    def flush(self):
+	pass
+
 class MiniLaunchpad (FileSystemEventHandler):
     def __init__(self):
         parser = argparse.ArgumentParser(description='Your Local Build Server of Awesomeness',

@@ -18,13 +18,11 @@ Setup the pbuilder environments inside of the mini-launchpad container / volume
     
     $ docker-compose -p mlp run mini-launchpad
     
-If the previous docker-compose command exited without error, we can now startup
+After "pbuilder environment configuration complete" is printed to the terminal,
+type ``CTRL+c`` to stop the mini-launchpad docker container. We can now startup
 the entire mini-launchpad system:
 
     $ docker-compose -p mlp up -d mini-launchpad mini-dinstall-web
-
-The user has to edit the docker.compose.yml file to set the PUBLICHOST to their
-IP address. It defaults to 127.0.0.1
 
 Stop docker processes:
 

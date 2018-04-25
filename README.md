@@ -8,6 +8,10 @@ package builds.
 
 # Setup Instructions
 
+Emulator is required to be installed in host machine for the arm builds to work:
+
+    $ apt-get install qemu-user-static
+
 Build the mini-dinstall and mini-launchpad images:
 
     $ cd docker

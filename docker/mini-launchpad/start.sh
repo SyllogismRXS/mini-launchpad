@@ -22,7 +22,7 @@ echo "pbuilder environment configuration complete"
 echo "============================================="
 
 /usr/bin/mini-launchpad --dist xenial \
-                        --arch "${arch_str}" \
+                        --arch ${arch_str} \
                         --ftp-loc /root/incoming \
                         --pbuilder-config /root/.pbuilderrc \
                         --dput-config /root/.dput.cf \

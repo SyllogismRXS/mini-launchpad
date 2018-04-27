@@ -16,6 +16,9 @@ Build the mini-dinstall and mini-launchpad images:
 
     $ cd docker
     $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad mini-dinstall
+    
+Modify the docker-compose.yml file to change ``PUBLICHOST: "localhost"`` to use
+your specific server IP address for passive FTP uploads.
 
 Setup the pbuilder environments inside of the mini-launchpad container / volume
 (This can take a long time and it will be running in "privileged" mode):

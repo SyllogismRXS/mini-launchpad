@@ -20,7 +20,7 @@ Build the mini-dinstall and mini-launchpad images:
 Setup the pbuilder environments inside of the mini-launchpad container / volume
 (This can take a long time and it will be running in "privileged" mode):
 
-    $ docker-compose -p mlp run mini-launchpad
+    $ docker-compose -p mlp up mini-launchpad
 
 After "pbuilder environment configuration complete" is printed to the terminal,
 type ``CTRL+c`` to stop the mini-launchpad docker container. We can now startup

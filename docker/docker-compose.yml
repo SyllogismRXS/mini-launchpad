@@ -7,7 +7,7 @@ services:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
-      PUBLICHOST: "127.0.0.1"
+      PUBLICHOST: "localhost"
       ADDED_FLAGS: "--verboselog"
     volumes:
       - ftp-incoming-1:/home/ftp

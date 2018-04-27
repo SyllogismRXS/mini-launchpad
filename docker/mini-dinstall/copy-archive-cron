@@ -1,1 +1,1 @@
-* * * * * rsync -avzh /root/archive /root/htdocs/ --delete
+* * * * * rsync -avzh /root/archive /root/htdocs/

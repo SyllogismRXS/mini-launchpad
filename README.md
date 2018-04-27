@@ -16,19 +16,31 @@ Build the mini-dinstall and mini-launchpad images:
 
     $ cd docker
     $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad mini-dinstall
-    
+
 Setup the pbuilder environments inside of the mini-launchpad container / volume
 (This can take a long time and it will be running in "privileged" mode):
-    
+
     $ docker-compose -p mlp run mini-launchpad
-    
+
 After "pbuilder environment configuration complete" is printed to the terminal,
 type ``CTRL+c`` to stop the mini-launchpad docker container. We can now startup
 the entire mini-launchpad system:
 
     $ docker-compose -p mlp up -d mini-launchpad mini-dinstall-web
 
-Stop docker processes:
+# Setup Repository Sources
+
+Add the following line to your ``/etc/apt/sources.list`` file:
+
+    deb [trusted=yes] http://localhost/archive xenial/<ARCH>/
+
+where, ``<ARCH>`` could be amd64, armhf, i386, arm64, etc. Now update your
+sources and check the policy for a package you pushed to your server:
+
+    $ sudo apt-get update
+    $ apt-cache policy <package-name>
+
+# Shutdown mini-launchpad
 
     $ docker-compose -p mlp stop
 

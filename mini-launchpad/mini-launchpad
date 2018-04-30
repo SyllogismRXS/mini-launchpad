@@ -81,7 +81,7 @@ class MiniLaunchpad (FileSystemEventHandler):
             self.file_list.append(event.src_path)
 
         if event.event_type == 'created' and event.src_path.endswith('.changes'):
-            thread = Thread(target = self.process_upload, args = (event.src_path))
+            thread = Thread(target = self.process_upload, args = (event.src_path,))
             thread.start()
 
     def watch(self, path):

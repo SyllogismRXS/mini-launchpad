@@ -20,7 +20,15 @@ services:
     privileged: true
     volumes:
       - ftp-incoming-1:/root/incoming
-      - pbuilder-cache:/var/cache/pbuilder      
+      - pbuilder-cache:/var/cache/pbuilder
+      - wwwroot-mini-launchpad:/root/build-logs
+
+  mini-launchpad-web:
+    image: httpd
+    ports:
+      - "9080:80"
+    volumes:
+      - wwwroot-mini-launchpad:/usr/local/apache2/htdocs/build-logs
 
   pure-ftpd-2:
     build: pure-ftpd
@@ -28,7 +36,7 @@ services:
       - "8021:21"
       - "40000-40009:40000-40009"
     environment:
-      PUBLICHOST: "localhost"
+      PUBLICHOST: "pure-ftpd-2"
       PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"
     volumes:
@@ -51,6 +59,7 @@ services:
     
 volumes:
   ftp-incoming-1:
+  wwwroot-mini-launchpad:
   ftp-incoming-2:
   wwwroot-mini-dinstall:
   pbuilder-cache:

@@ -27,4 +27,4 @@ echo "============================================="
                         --pbuilder-config /root/.pbuilderrc \
                         --dput-config /root/.dput.cf \
                         --dput-name local-ftp \
-                        --log-path /root/archive/build-logs
+                        --log-path /root/build-logs

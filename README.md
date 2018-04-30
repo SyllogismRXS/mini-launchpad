@@ -15,8 +15,9 @@ Emulator is required to be installed in host machine for the arm builds to work:
 Build the mini-dinstall and mini-launchpad images:
 
     $ cd docker
-    $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad mini-dinstall
-    
+    $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad pure-ftpd-2 \
+        mini-dinstall mini-dinstall-web mini-launchpad-web
+
 Modify the docker-compose.yml file to change ``PUBLICHOST: "localhost"`` to use
 your specific server IP address for passive FTP uploads.
 
@@ -29,7 +30,8 @@ After "pbuilder environment configuration complete" is printed to the terminal,
 type ``CTRL+c`` to stop the mini-launchpad docker container. We can now startup
 the entire mini-launchpad system:
 
-    $ docker-compose -p mlp up -d mini-launchpad mini-dinstall-web
+    $ docker-compose -p mlp up -d pure-ftpd-1 mini-launchpad pure-ftpd-2 \
+        mini-dinstall mini-dinstall-web mini-launchpad-web
 
 # Setup Repository Sources
 

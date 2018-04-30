@@ -8,6 +8,7 @@ services:
       - "30000-30009:30000-30009"
     environment:
       PUBLICHOST: "localhost"
+      PORT_RANGE: "30000:30009"
       ADDED_FLAGS: "--verboselog"
     volumes:
       - ftp-incoming-1:/home/ftp
@@ -17,34 +18,39 @@ services:
       context: ../
       dockerfile: ./docker/mini-launchpad/Dockerfile
     privileged: true
-    depends_on:
-      - pure-ftpd-1
     volumes:
-      - pbuilder-cache:/var/cache/pbuilder
       - ftp-incoming-1:/root/incoming
+      - pbuilder-cache:/var/cache/pbuilder      
 
-  # Serves the apt-get repo to other users
-  mini-dinstall:
-    build: mini-dinstall
-    volumes:
-      - wwwroot-mini-dinstall:/root/htdocs
+  pure-ftpd-2:
+    build: pure-ftpd
     ports:
-      - "8121:21"
-      - "30010-30019:30010-30019"
+      - "8021:21"
+      - "40000-40009:40000-40009"
     environment:
-      PUBLICHOST: "mini-dinstall"
+      PUBLICHOST: "localhost"
+      PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"
+    volumes:
+      - ftp-incoming-2:/home/ftp
 
+  mini-dinstall:
+    build:
+        context: ./mini-dinstall
+        dockerfile: ./Dockerfile
+    volumes:
+      - ftp-incoming-2:/root/archive/mini-dinstall/incoming
+      - wwwroot-mini-dinstall:/root/archive
+      
   mini-dinstall-web:
     image: httpd
-    depends_on:
-      - mini-dinstall
-    volumes:
-      - wwwroot-mini-dinstall:/usr/local/apache2/htdocs
     ports:
       - "80:80"
-
+    volumes:
+      - wwwroot-mini-dinstall:/usr/local/apache2/htdocs/archive
+    
 volumes:
   ftp-incoming-1:
+  ftp-incoming-2:
   wwwroot-mini-dinstall:
   pbuilder-cache:

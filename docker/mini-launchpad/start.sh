@@ -23,7 +23,8 @@ echo "============================================="
 
 /usr/bin/mini-launchpad --dist xenial \
                         --arch ${arch_str} \
-                        --ftp-loc /root/incoming \
+                        --ftp-incoming /root/incoming \
                         --pbuilder-config /root/.pbuilderrc \
                         --dput-config /root/.dput.cf \
                         --dput-name local-ftp \
+                        --log-path /root/archive/build-logs

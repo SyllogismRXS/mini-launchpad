@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import argparse
 import subprocess
+from threading import Thread
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -50,7 +51,7 @@ class MiniLaunchpad (FileSystemEventHandler):
                            help='Distributions you want to support')
         add('--arch', nargs='+', default='amd64',
                            help='Architectures you want to support')
-        add('--ftp-loc', default='.',
+        add('--ftp-incoming', default='.',
                            help='FTP server location')
         add('--pbuilder-config',
                            default=os.path.expanduser('~/.pbuilderrc'),
@@ -63,18 +64,25 @@ class MiniLaunchpad (FileSystemEventHandler):
                            help='Store logs in specified path.')
         self.args = parser.parse_args()
 
-        # TODO check for existence of dput.cf, pbuilder-config
+        if not os.path.isfile(self.args.dput_config):
+            print('dput config does not exist: %s' % self.args.dput_config)
+            sys.exit(-1)
+
+        if not os.path.isfile(self.args.pbuilder_config):
+            print('pbuilder config does not exist: %s' % self.args.pbuilder_config)
+            sys.exit(-1)
 
         self.file_list = []
 
-        self.watch(self.args.ftp_loc)
+        self.watch(self.args.ftp_incoming)
 
     def on_any_event(self, event):
         if event.event_type == 'created':
             self.file_list.append(event.src_path)
 
         if event.event_type == 'created' and event.src_path.endswith('.changes'):
-            self.process_upload()
+            thread = Thread(target = self.process_upload, args = (event.src_path))
+            thread.start()
 
     def watch(self, path):
         self.event_handler = self
@@ -87,7 +95,7 @@ class MiniLaunchpad (FileSystemEventHandler):
         # environments
         pass
 
-    def process_upload(self):
+    def process_upload(self, changes_file):
         print('Waiting 2 seconds...')
         time.sleep(2)
         print('Processing upload')

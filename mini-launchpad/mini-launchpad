@@ -27,20 +27,6 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
-class Logger:
-    """Helper class to print log to console and filename"""
-    def __init__(self, filepath):
-        self.terminal = sys.stdout
-        self.log = open(filepath, "a")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-        self.terminal.flush()
-        self.log.flush()
-
-    def flush(self):
-	pass
 
 class MiniLaunchpad (FileSystemEventHandler):
     def __init__(self):
@@ -116,7 +102,7 @@ class MiniLaunchpad (FileSystemEventHandler):
     def build_package(self, input_files_tmp_dir, dist, arch):
         # TODO for each build, write output to different log file
         # currently hardcoded this DIST and ARCH. Must be changed!!
-        self.log(dist, arch)
+        log_file = self.log(dist, arch)
         # create a temporary directory for this build
         tmp_dir = tempfile.mkdtemp()
         print('Temp dir (%s, %s): %s' % (dist, arch, tmp_dir))
@@ -141,7 +127,7 @@ class MiniLaunchpad (FileSystemEventHandler):
                   "--buildresult ./ " + dsc_file
 
             print('Command: %s', cmd)
-            subprocess.call(cmd, shell=True)
+            subprocess.call(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT)
 
             dput_success = False
             for file in os.listdir(tmp_dir):
@@ -162,13 +148,18 @@ class MiniLaunchpad (FileSystemEventHandler):
         shutil.rmtree(tmp_dir)
 
     def log(self, dist, arch):
-        filename = dist + '_' + arch + '.log'
+        # Add timestamp to our log file
+        timeTmp = time.strftime('%Y_%m_%d-%H_%M_%S-')
+        filename = timeTmp + dist + '_' + arch + '.log'
+
         # allow user to be able to specify log folder location
         if not os.path.exists(self.args.log_path):
             os.makedirs(self.args.log_path)
         filepath = os.path.join(self.args.log_path, filename)
 
-        sys.stdout = Logger(filepath)
+        # open the file for writing
+	logfile = open(filepath, "w")
+	return logfile
 
     def run(self):
         try:

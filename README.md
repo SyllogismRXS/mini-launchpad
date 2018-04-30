@@ -37,13 +37,18 @@ the entire mini-launchpad system:
 
 Add the following line to your ``/etc/apt/sources.list`` file:
 
-    deb [trusted=yes] http://localhost/archive xenial/<ARCH>/
+    deb [trusted=yes] http://<SERVER-IP>/archive xenial/<ARCH>/
 
-where, ``<ARCH>`` could be amd64, armhf, i386, arm64, etc. Now update your
-sources and check the policy for a package you pushed to your server:
+where, ``<ARCH>`` could be amd64, armhf, i386, arm64, etc and ``<SERVER-IP>``
+is the server's IP address. Now update your sources and check the policy for a
+package you pushed to your server:
 
     $ sudo apt-get update
     $ apt-cache policy <package-name>
+
+# Access Build Logs
+
+Open a browser and navigate to ``http://<SERVER-IP>:9080/build-logs``
 
 # Shutdown mini-launchpad
 

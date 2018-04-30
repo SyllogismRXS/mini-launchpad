@@ -22,8 +22,8 @@ Build the mini-dinstall and mini-launchpad images:
     $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad pure-ftpd-2 \
         mini-dinstall mini-dinstall-web mini-launchpad-web
 
-Modify the docker-compose.yml file to change ``PUBLICHOST: "localhost"`` to use
-your specific server IP address for passive FTP uploads for both pure-ftpd
+Modify the ``docker-compose.yml`` by changing ``PUBLICHOST: "localhost"`` to
+use your specific server IP address for passive FTP uploads for both pure-ftpd
 services.
 
 Setup the pbuilder environments inside of the mini-launchpad container / volume
@@ -31,9 +31,9 @@ Setup the pbuilder environments inside of the mini-launchpad container / volume
 
     $ docker-compose -p mlp up mini-launchpad
 
-After "pbuilder environment configuration complete" is printed to the terminal,
-type ``CTRL+c`` to stop the mini-launchpad docker container. We can now startup
-the entire mini-launchpad system:
+After ``pbuilder environment configuration complete`` is printed to the
+terminal, type ``CTRL+c`` to stop the mini-launchpad docker container. We can
+now startup the entire mini-launchpad system:
 
     $ docker-compose -p mlp up -d pure-ftpd-1 mini-launchpad pure-ftpd-2 \
         mini-dinstall mini-dinstall-web mini-launchpad-web
@@ -49,7 +49,7 @@ server. On a local machine, you may use dput to push debian source packages to
 mini-launchpad or use dput to push debian binary packages (that you have built
 locally) to mini-dinstall.
 
-## Setup local .dput.cf configuration
+## Setup local ~/.dput.cf configuration
 
 In order to upload debian source and binary packages to mini-launchpad, you
 need to configure your ``~/.dput.cf`` file.  An example ``dput.cf`` file is
@@ -67,9 +67,9 @@ following dput command:
 
 ## Setup Repository Sources
 
-In order to download and install (using apt-get) the debian binary packages
-built by mini-launchpad, you need to configure the sources.list file on your
-local machine.
+In order to download and install (using apt-get) the debian packages built by
+mini-launchpad, you need to configure the sources.list file on your local
+machine.
 
 Add the following line to your ``/etc/apt/sources.list`` file:
 

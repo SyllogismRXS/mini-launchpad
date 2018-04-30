@@ -8,7 +8,8 @@ package builds.
 
 # Setup Instructions
 
-Emulator is required to be installed in host machine for the arm builds to work:
+Emulator is required to be installed in host machine for the arm builds to
+work:
 
     $ apt-get install qemu-user-static
 
@@ -19,7 +20,8 @@ Build the mini-dinstall and mini-launchpad images:
         mini-dinstall mini-dinstall-web mini-launchpad-web
 
 Modify the docker-compose.yml file to change ``PUBLICHOST: "localhost"`` to use
-your specific server IP address for passive FTP uploads.
+your specific server IP address for passive FTP uploads for both pure-ftpd
+services.
 
 Setup the pbuilder environments inside of the mini-launchpad container / volume
 (This can take a long time and it will be running in "privileged" mode):

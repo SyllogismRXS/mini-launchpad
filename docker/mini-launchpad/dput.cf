@@ -1,5 +1,5 @@
 [local-ftp]
-fqdn = pure-ftpd-2
+fqdn = pure-ftpd-2:8021
 login = anonymous
 progress_indicator = 2
 passive_ftp = 1

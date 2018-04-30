@@ -8,6 +8,7 @@ services:
       - "30000-30009:30000-30009"
     environment:
       PUBLICHOST: "localhost"
+      LISTEN_PORT: "21"
       PORT_RANGE: "30000:30009"
       ADDED_FLAGS: "--verboselog"
     volumes:
@@ -33,10 +34,11 @@ services:
   pure-ftpd-2:
     build: pure-ftpd
     ports:
-      - "8021:21"
+      - "8021:8021"
       - "40000-40009:40000-40009"
     environment:
-      PUBLICHOST: "pure-ftpd-2"
+      PUBLICHOST: "localhost"
+      LISTEN_PORT: "8021"
       PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"
     volumes:

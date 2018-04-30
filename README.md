@@ -6,9 +6,12 @@ binary packages with minimal setup and configuration. The goal is to setup the
 build system without a website GUI frontend. Initially, we are targeting Ubuntu
 package builds.
 
-# Setup Instructions
+# Server Setup Instructions
 
-Emulator is required to be installed in host machine for the arm builds to
+The following are the setup instructions to be run on the machine that will
+host the mini-launchpad server.
+
+An emulator is required to be installed in host machine for the arm builds to
 work:
 
     $ apt-get install qemu-user-static
@@ -35,7 +38,38 @@ the entire mini-launchpad system:
     $ docker-compose -p mlp up -d pure-ftpd-1 mini-launchpad pure-ftpd-2 \
         mini-dinstall mini-dinstall-web mini-launchpad-web
 
-# Setup Repository Sources
+## Shutdown mini-launchpad
+
+    $ docker-compose -p mlp stop
+
+# Local Machine Setup Instructions
+
+The following are the setup instructions on your local machine, not the
+server. On a local machine, you may use dput to push debian source packages to
+mini-launchpad or use dput to push debian binary packages (that you have built
+locally) to mini-dinstall.
+
+## Setup local .dput.cf configuration
+
+In order to upload debian source and binary packages to mini-launchpad, you
+need to configure your ``~/.dput.cf`` file.  An example ``dput.cf`` file is
+provided with this repository. Update your own ``~/.dput.cf`` file to include
+the information from ``dput.cf``. Once updated, you can upload a debian source
+package with the following command:
+
+    $ dput server-source /path/to/<package>_source.changes
+
+If you want to build a local version of a debian package and upload it directly
+to mini-dinstall (bypassing the mini-launchpad build process), use the
+following dput command:
+
+    $ dput server-binary /path/to/<package>_<arch>.changes
+
+## Setup Repository Sources
+
+In order to download and install (using apt-get) the debian binary packages
+built by mini-launchpad, you need to configure the sources.list file on your
+local machine.
 
 Add the following line to your ``/etc/apt/sources.list`` file:
 
@@ -48,13 +82,9 @@ package you pushed to your server:
     $ sudo apt-get update
     $ apt-cache policy <package-name>
 
-# Access Build Logs
+## Access Build Logs
 
 Open a browser and navigate to ``http://<SERVER-IP>:9080/build-logs``
-
-# Shutdown mini-launchpad
-
-    $ docker-compose -p mlp stop
 
 # Other Related Projects
 

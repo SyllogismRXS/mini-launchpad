@@ -1,0 +1,21 @@
+# Change <SERVER-IP> to the IP address of your mini-launchpad build server
+
+# Upload source packages here
+[server-source]
+fqdn = <SERVER-IP>
+login = anonymous
+progress_indicator = 2
+passive_ftp = 1
+incoming = ./
+method = ftp
+allow_unsigned_uploads = 1
+
+# Upload binary packages here
+[server-binary]
+fqdn = <SERVER-IP>:8021
+login = anonymous
+progress_indicator = 2
+passive_ftp = 1
+incoming = ./
+method = ftp
+allow_unsigned_uploads = 1

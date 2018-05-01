@@ -16,18 +16,21 @@ work:
 
     $ apt-get install qemu-user-static
 
-Build the mini-dinstall and mini-launchpad images:
+Modify the ``./docker/docker-compose.yml`` file by changing ``PUBLICHOST:
+"localhost"`` to use your specific server IP address for passive FTP uploads
+for both pure-ftpd services. Also, modify the ``fqdn`` line in
+``./docker/mini-launchpad/dput.cf`` to point to your server's IP address (e.g.,
+``fqdn = 192.168.1.139:8021``). Just using ``localhost`` breaks the PASV FTP
+functionality.
+
+Build the docker images:
 
     $ cd docker
-    $ docker-compose -p mlp build pure-ftpd-1 mini-launchpad pure-ftpd-2 \
-        mini-dinstall mini-dinstall-web mini-launchpad-web
+    $ docker-compose -p mlp build
 
-Modify the ``docker-compose.yml`` by changing ``PUBLICHOST: "localhost"`` to
-use your specific server IP address for passive FTP uploads for both pure-ftpd
-services.
-
-Setup the pbuilder environments inside of the mini-launchpad container / volume
-(This can take a long time and it will be running in "privileged" mode):
+Setup the pbuilder environments inside of the mini-launchpad container /
+volume.  The following can take a long time (~20 minutes) and it will be
+running in "privileged" mode:
 
     $ docker-compose -p mlp up mini-launchpad
 
@@ -35,8 +38,7 @@ After ``pbuilder environment configuration complete`` is printed to the
 terminal, type ``CTRL+c`` to stop the mini-launchpad docker container. We can
 now startup the entire mini-launchpad system:
 
-    $ docker-compose -p mlp up -d pure-ftpd-1 mini-launchpad pure-ftpd-2 \
-        mini-dinstall mini-dinstall-web mini-launchpad-web
+    $ docker-compose -p mlp up -d
 
 ## Shutdown mini-launchpad
 

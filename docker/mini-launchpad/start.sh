@@ -21,10 +21,10 @@ echo "============================================="
 echo "pbuilder environment configuration complete"
 echo "============================================="
 
-/usr/bin/mini-launchpad --dist xenial \
-                        --arch ${arch_str} \
-                        --ftp-incoming /root/incoming \
-                        --pbuilder-config /root/.pbuilderrc \
-                        --dput-config /root/.dput.cf \
-                        --dput-name local-ftp \
-                        --log-path /root/build-logs
+python -u /usr/bin/mini-launchpad --dist xenial \
+                                  --arch ${arch_str} \
+                                  --ftp-incoming /root/incoming \
+                                  --pbuilder-config /root/.pbuilderrc \
+                                  --dput-config /root/.dput.cf \
+                                  --dput-name local-ftp \
+                                  --log-path /root/build-logs

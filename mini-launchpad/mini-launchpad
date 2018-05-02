@@ -8,7 +8,8 @@ import shutil
 import tempfile
 import argparse
 import subprocess
-from threading import Thread
+import distutils.util
+from threading import Thread, Lock
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -39,14 +40,16 @@ class MiniLaunchpad (FileSystemEventHandler):
                            help='Architectures you want to support')
         add('--ftp-incoming', default='.',
                            help='FTP server location')
+	add('--ftp-incoming-clear', type=distutils.util.strtobool, default='False',
+			   help='Clear FTP server location at initiation.')
         add('--pbuilder-config',
                            default=os.path.expanduser('~/.pbuilderrc'),
                            help='pbuilder config file location')
         add('--dput-config', default=os.path.expanduser('~/.dput.cf'),
                            help='dput config file location')
-        add('--dput-name', default='thingymaboop',
+        add('--dput-name', default='local',
                            help='dput host')
-        add('--log-path', default=os.path.expanduser('~/.mini-launchpad/log/'),     # Is this a decent spot for logs?
+        add('--log-path', default=os.path.expanduser('~/.mini-launchpad/log/'),
                            help='Store logs in specified path.')
         self.args = parser.parse_args()
 
@@ -59,6 +62,12 @@ class MiniLaunchpad (FileSystemEventHandler):
             sys.exit(-1)
 
         self.file_list = []
+
+	self.mutex = Lock()
+ 
+	if self.args.ftp_incoming_clear == True:
+	    print "Removing files found"
+	    self.remove_oninit(self.args.ftp_incoming)
 
         self.watch(self.args.ftp_incoming)
 
@@ -86,71 +95,93 @@ class MiniLaunchpad (FileSystemEventHandler):
         time.sleep(2)
         print('Processing upload')
 
+	# Helper variables
+	firstpkg = True
+	pkg_file = ""
+	pkg_dict = dict()
+
         # move the input files out of the incoming ftp directory
         input_files_tmp_dir = tempfile.mkdtemp()
         print('Input files tmp dir: %s' % input_files_tmp_dir)
         for f in self.file_list:
-            shutil.move(f, input_files_tmp_dir + "/")
+	    # Obtain the name of the package we are preparing to process
+	    if f.endswith(".changes") and firstpkg:
+		pkg_file = os.path.basename(f)
+		pkg_file = pkg_file.split("_")[0]
+		firstpkg = False
+	    # Create helpers in order to ensure files of other pkgs don't get moved over
+	    base_filename = os.path.splitext(os.path.basename(f))[0]
+	    pkg_dict[f] = base_filename.split("_")[0]
+	# Serves as security check that we aren't moving any file that doesn't correspond
+	# to the package we are preparing to build.
+	for file_type, file_name in pkg_dict.iteritems():
+	    if file_name == pkg_file:
+		  print file_type
+	          shutil.move(os.path.join(changes_file, file_type), input_files_tmp_dir + "/")
+
         self.file_list = []
 
         for dist in self.args.dist:
             for arch in self.args.arch:
-                self.build_package(input_files_tmp_dir, dist,arch)
+                self.build_package(input_files_tmp_dir, dist, arch, pkg_file)
 
         shutil.rmtree(input_files_tmp_dir)
 
-    def build_package(self, input_files_tmp_dir, dist, arch):
-        # TODO for each build, write output to different log file
-        # currently hardcoded this DIST and ARCH. Must be changed!!
-        log_file = self.log(dist, arch)
-        # create a temporary directory for this build
-        tmp_dir = tempfile.mkdtemp()
-        print('Temp dir (%s, %s): %s' % (dist, arch, tmp_dir))
+    def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
+	self.mutex.acquire()
+	try:
+		# Create build logs
+		log_file = self.log(dist, arch, pkg_file)
+		# create a temporary directory for this build
+		tmp_dir = tempfile.mkdtemp()
+		print('Temp dir (%s, %s): %s' % (dist, arch, tmp_dir))
 
-        for f in os.listdir(input_files_tmp_dir):
-            shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")
+		for f in os.listdir(input_files_tmp_dir):
+		    shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")
 
-        with cd(tmp_dir):
-            dsc_file = None
-            for file in os.listdir(tmp_dir):
-                if file.endswith(".dsc"):
-                    dsc_file = file
+		with cd(tmp_dir):
+		    dsc_file = None
+		    for file in os.listdir(tmp_dir):
+			print file
+			if file.endswith(".dsc"):
+			    dsc_file = file
 
-            if dsc_file is None:
-                print('Cannot find dsc file')
-                return
+		    if dsc_file is None:
+			print pkg_file
+			print('Cannot find dsc file')
+			return
 
-            config_file= self.args.pbuilder_config
+		    config_file= self.args.pbuilder_config
 
-            cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
-                  "--configfile "+config_file+" " \
-                  "--buildresult ./ " + dsc_file
+		    cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
+			  "--configfile "+config_file+" " \
+			  "--buildresult ./ " + dsc_file
 
-            print('Command: %s', cmd)
-            subprocess.call(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT)
+		    print('Command: %s', cmd)
+		    subprocess.call(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT)
 
-            dput_success = False
-            for file in os.listdir(tmp_dir):
-                if file.endswith(arch + ".changes"):
-                    # TODO make --config argument and dput name (gtri-binary)
-                    # configurable
-                    dput_cmd = "dput --config " + self.args.dput_config + " " +\
-                               self.args.dput_name + " " + file
-                    print("dput command: %s" % dput_cmd)
-                    subprocess.call(dput_cmd, shell=True)
-                    dput_success = True
+		    dput_success = False
+		    for file in os.listdir(tmp_dir):
+			if file.endswith(arch + ".changes"):
+			    dput_cmd = "dput --config " + self.args.dput_config + " " +\
+				       self.args.dput_name + " " + file
+			    print("dput command: %s" % dput_cmd)
+			    subprocess.call(dput_cmd, shell=True)
+			    dput_success = True
 
-            if not dput_success:
-                print('Failed to dput')
-                subprocess.call("ls")
+		    if not dput_success:
+			print('Failed to dput')
+			subprocess.call("ls")
 
-        print('Removing tmp dir: %s' % tmp_dir)
-        shutil.rmtree(tmp_dir)
+		print('Removing tmp dir: %s' % tmp_dir)
+		shutil.rmtree(tmp_dir, Lock)
+	finally:
+		self.mutex.release()
 
-    def log(self, dist, arch):
+    def log(self, dist, arch, pkg_name):
         # Add timestamp to our log file
         timeTmp = time.strftime('%Y_%m_%d-%H_%M_%S-')
-        filename = timeTmp + dist + '_' + arch + '.log'
+        filename = timeTmp + dist +'_'+arch+'_'+pkg_name+'.log'
 
         # allow user to be able to specify log folder location
         if not os.path.exists(self.args.log_path):
@@ -160,6 +191,16 @@ class MiniLaunchpad (FileSystemEventHandler):
         # open the file for writing
 	logfile = open(filepath, "w")
 	return logfile
+
+    def remove_oninit(self, path):
+	# If our directory has something within: Purge!
+	if not len(os.listdir(path)) == 0:
+	    for file in os.listdir(path):
+		try:
+		    full_path = os.path.join(path, file)
+		    os.remove(full_path)
+		except:
+		    print("Error removing the current file: %s" % full_path)
 
     def run(self):
         try:

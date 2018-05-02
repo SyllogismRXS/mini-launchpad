@@ -7,7 +7,7 @@ services:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
-      PUBLICHOST: "localhost"
+      PUBLICHOST: "10.108.21.250"
       LISTEN_PORT: "21"
       PORT_RANGE: "30000:30009"
       ADDED_FLAGS: "--verboselog"
@@ -37,7 +37,7 @@ services:
       - "8021:8021"
       - "40000-40009:40000-40009"
     environment:
-      PUBLICHOST: "localhost"
+      PUBLICHOST: "10.108.21.250"
       LISTEN_PORT: "8021"
       PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"

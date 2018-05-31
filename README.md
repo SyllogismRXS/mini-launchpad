@@ -84,6 +84,28 @@ package you pushed to your server:
     $ sudo apt-get update
     $ apt-cache policy <package-name>
 
+## Removing packages in mini-dinstall
+
+To remove packages from the server, login to the mini-dinstall container:
+
+    $ docker exec -it mlp_mini-dinstall_1 /bin/bash
+
+From there you will want to navigate to the directory where the packages live:
+
+    $ cd ~/archive/xenial
+
+Here we should have all our packages organized by supported architectures. The next
+step is to remove all instances of the package we want to remove. (To double check
+what files you'll be purging remove the -delete flag).
+
+    $ find . -name "dumby-package*" -type f -delete
+
+Lastly, we want to remove the *.db files located in this directory as they keep
+stored information about packages uploaded and don't update when the same package
+is sent to the server causing conflicts when attempting to fetch it later on.
+
+    $ rm *.db
+
 ## Access Build Logs
 
 Open a browser and navigate to ``http://<SERVER-IP>:9080/build-logs``

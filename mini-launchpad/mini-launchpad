@@ -8,7 +8,9 @@ import shutil
 import tempfile
 import argparse
 import subprocess
-from threading import Thread, Lock
+import traceback
+import logging
+from threading import Thread
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -127,6 +129,7 @@ class MiniLaunchpad (FileSystemEventHandler):
         for thread in threads:
             thread.join()
 
+        print('Removing input files tmp dir: %s' % input_files_tmp_dir)
         shutil.rmtree(input_files_tmp_dir) # remove temporary directory
 
     def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
@@ -164,18 +167,20 @@ class MiniLaunchpad (FileSystemEventHandler):
 			if file.endswith(arch + ".changes"):
 			    dput_cmd = "dput --config " + self.args.dput_config + " " +\
 				       self.args.dput_name + " " + file
-			    print("dput command: %s" % dput_cmd)
+			    print("DIST=%s, ARCH=%s, PKG=%s dput command: %s" % (dist, arch, pkg_file, dput_cmd))
 			    subprocess.call(dput_cmd, shell=True)
 			    dput_success = True
 
 		    if not dput_success:
-			print('Failed to dput')
+			print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
+                        subprocess.call("pwd")
 			subprocess.call("ls")
 
 		print('Removing tmp dir: %s' % tmp_dir)
-		shutil.rmtree(tmp_dir, Lock)
-	finally:
-            print('Exception triggered in build_package')
+		shutil.rmtree(tmp_dir)
+	except Exception as e:
+            print('Exception triggered in build_package, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
+            logging.error(traceback.format_exc())
 
     def log(self, dist, arch, pkg_name):
         # Add timestamp to our log file

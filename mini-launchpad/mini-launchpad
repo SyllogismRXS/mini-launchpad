@@ -119,6 +119,7 @@ class MiniLaunchpad (FileSystemEventHandler):
         threads = []
         for dist in self.args.dist:
             for arch in self.args.arch:
+                print('Build thread: DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
                 thread = Thread(target = self.build_package,
                                 args = (input_files_tmp_dir, dist, arch, pkg_file))
                 thread.start()

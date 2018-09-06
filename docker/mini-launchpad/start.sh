@@ -13,7 +13,7 @@ do
             --configfile /root/.pbuilderrc
     else
         DIST=${dist} ARCH=${arch} pbuilder --update \
-            --configfile /root/.pbuilderrc
+            --configfile /root/.pbuilderrc --override-config
     fi
 done
 

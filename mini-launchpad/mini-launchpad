@@ -60,8 +60,6 @@ class MiniLaunchpad (FileSystemEventHandler):
 
         self.file_list = []
 
-	self.mutex = Lock()
-
 	self.remove_oninit(self.args.ftp_incoming)
 
         self.watch(self.args.ftp_incoming)
@@ -132,7 +130,6 @@ class MiniLaunchpad (FileSystemEventHandler):
         shutil.rmtree(input_files_tmp_dir) # remove temporary directory
 
     def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
-	self.mutex.acquire()
 	try:
 		# Create build logs
 		log_file = self.log(dist, arch, pkg_file)
@@ -178,7 +175,7 @@ class MiniLaunchpad (FileSystemEventHandler):
 		print('Removing tmp dir: %s' % tmp_dir)
 		shutil.rmtree(tmp_dir, Lock)
 	finally:
-		self.mutex.release()
+            print('Exception triggered in build_package')
 
     def log(self, dist, arch, pkg_name):
         # Add timestamp to our log file

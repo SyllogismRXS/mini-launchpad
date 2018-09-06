@@ -17,19 +17,6 @@ from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 from argparse import ArgumentDefaultsHelpFormatter
 
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-
 class MiniLaunchpad (FileSystemEventHandler):
     def __init__(self):
         parser = argparse.ArgumentParser(description='Your Local Build Server of Awesomeness',
@@ -88,7 +75,6 @@ class MiniLaunchpad (FileSystemEventHandler):
     def process_upload(self, changes_file):
         print('Waiting 2 seconds...')
         time.sleep(2)
-        print('Processing upload')
 
 	# Helper variables
 	firstpkg = True
@@ -97,7 +83,7 @@ class MiniLaunchpad (FileSystemEventHandler):
 
         # move the input files out of the incoming ftp directory
         input_files_tmp_dir = tempfile.mkdtemp()
-        print('Input files tmp dir: %s' % input_files_tmp_dir)
+        # print('Input files tmp dir: %s' % input_files_tmp_dir)
         for f in self.file_list:
 	    # Obtain the name of the package we are preparing to process
 	    if f.endswith(".changes") and firstpkg:
@@ -124,60 +110,61 @@ class MiniLaunchpad (FileSystemEventHandler):
                                 args = (input_files_tmp_dir, dist, arch, pkg_file))
                 thread.start()
                 threads.append(thread)
+                time.sleep(1)
 
         # Wait for all build threads to complete
         for thread in threads:
             thread.join()
 
-        print('Removing input files tmp dir: %s' % input_files_tmp_dir)
+        print('Build complete: %s' % pkg_file)
         shutil.rmtree(input_files_tmp_dir) # remove temporary directory
 
     def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
-	try:
-		# Create build logs
-		log_file = self.log(dist, arch, pkg_file)
-		# create a temporary directory for this build
-		tmp_dir = tempfile.mkdtemp()
-		print('Temp dir (%s, %s): %s' % (dist, arch, tmp_dir))
+        try:
+	    # Create build logs
+	    log_file = self.log(dist, arch, pkg_file)
+	    # create a temporary directory for this build
+	    tmp_dir = tempfile.mkdtemp()
 
-		for f in os.listdir(input_files_tmp_dir):
-		    shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")
+            # Copy the input files into the temporary directory
+	    for f in os.listdir(input_files_tmp_dir):
+		shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")
 
-		with cd(tmp_dir):
-		    dsc_file = None
-		    for file in os.listdir(tmp_dir):
-			if file.endswith(".dsc"):
-			    dsc_file = file
+            # Find the .dsc file
+	    dsc_file = None
+	    for file in os.listdir(tmp_dir):
+		if file.endswith(".dsc"):
+		    dsc_file = file
 
-		    if dsc_file is None:
-			print('Cannot find dsc file')
-			return
+	    if dsc_file is None:
+		print('Cannot find dsc file')
+		return
 
-		    config_file= self.args.pbuilder_config
+	    cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
+		  "--configfile " + self.args.pbuilder_config + " " \
+		  "--buildresult " + tmp_dir + " " + dsc_file
 
-		    cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
-			  "--configfile "+config_file+" " \
-			  "--buildresult ./ " + dsc_file
+            # TODO: Get error codes from pbuilder call, recreate
+            # pbuilder tarball if necessary
+	    print('Command: %s', cmd)
+	    subprocess.call(cmd, cwd=tmp_dir, shell=True, stdout=log_file, stderr=subprocess.STDOUT)
 
-		    print('Command: %s', cmd)
-		    subprocess.call(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT)
+	    dput_success = False
+	    for file in os.listdir(tmp_dir):
+		if file.endswith(arch + ".changes"):
+		    dput_cmd = "dput --config " + self.args.dput_config + " " +\
+			       self.args.dput_name + " " + os.path.join(tmp_dir, file)
+		    print("DIST=%s, ARCH=%s, PKG=%s dput command: %s" % (dist, arch, pkg_file, dput_cmd))
+		    subprocess.call(dput_cmd, cwd=tmp_dir, shell=True)
+		    dput_success = True
 
-		    dput_success = False
-		    for file in os.listdir(tmp_dir):
-			if file.endswith(arch + ".changes"):
-			    dput_cmd = "dput --config " + self.args.dput_config + " " +\
-				       self.args.dput_name + " " + file
-			    print("DIST=%s, ARCH=%s, PKG=%s dput command: %s" % (dist, arch, pkg_file, dput_cmd))
-			    subprocess.call(dput_cmd, shell=True)
-			    dput_success = True
+	    if not dput_success:
+		print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
+		subprocess.call(['ls', tmp_dir])
 
-		    if not dput_success:
-			print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
-                        subprocess.call("pwd")
-			subprocess.call("ls")
+            #print('Removing tmp dir: %s' % tmp_dir)
+	    shutil.rmtree(tmp_dir)
 
-		print('Removing tmp dir: %s' % tmp_dir)
-		shutil.rmtree(tmp_dir)
 	except Exception as e:
             print('Exception triggered in build_package, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
             logging.error(traceback.format_exc())

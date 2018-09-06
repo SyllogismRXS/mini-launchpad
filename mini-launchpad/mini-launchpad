@@ -115,11 +115,20 @@ class MiniLaunchpad (FileSystemEventHandler):
 
         self.file_list = []
 
+        # Create a new thread for each build
+        threads = []
         for dist in self.args.dist:
             for arch in self.args.arch:
-                self.build_package(input_files_tmp_dir, dist, arch, pkg_file)
+                thread = Thread(target = self.build_package,
+                                args = (input_files_tmp_dir, dist, arch, pkg_file))
+                thread.start()
+                threads.append(thread)
 
-        shutil.rmtree(input_files_tmp_dir)
+        # Wait for all build threads to complete
+        for thread in threads:
+            thread.join()
+
+        shutil.rmtree(input_files_tmp_dir) # remove temporary directory
 
     def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
 	self.mutex.acquire()

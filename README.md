@@ -94,17 +94,39 @@ From there you will want to navigate to the directory where the packages live:
 
     $ cd ~/archive/xenial
 
-Here we should have all our packages organized by supported architectures. The next
-step is to remove all instances of the package we want to remove. (To double check
-what files you'll be purging remove the -delete flag).
+Here we should have all our packages organized by supported architectures. The
+next step is to remove all instances of the package we want to remove. (To
+double check what files you'll be purging remove the -delete flag).
 
     $ find . -name "dumby-package*" -type f -delete
 
 Lastly, we want to remove the *.db files located in this directory as they keep
-stored information about packages uploaded and don't update when the same package
-is sent to the server causing conflicts when attempting to fetch it later on.
+stored information about packages uploaded and don't update when the same
+package is sent to the server causing conflicts when attempting to fetch it
+later on.
 
     $ rm *.db
+
+## Hash Sum mismatch Error
+
+If you receive a "Hash Sum mismatch" error when trying to install packages with
+apt-get, the "Packages" file on the server may have to be regenerated. This is
+mostly easily accomplished by removing the ``*.db`` files on the server and
+restarting mini-launchpad. For example,
+
+    $ docker exec -it mlp_mini-dinstall_1 /bin/bash
+    $ cd ~/archive/xenial.db
+    $ rm *.db
+    $ exit                            # exit the mini-dinstall container
+    $ docker-compose -p mlp stop      # stop mini-launchpad
+    $ docker-compose -p mlp up -d     # start mini-launchpad
+    $ docker-compose -p mlp logs -f   # Check mini-dinstall logs
+
+The client computer's (where apt-get install is run) cached version of the
+Packages file has to be removed as well:
+
+    $ sudo rm -rf /var/lib/apt/lists/*
+    $ sudo apt-get update
 
 ## Access Build Logs
 

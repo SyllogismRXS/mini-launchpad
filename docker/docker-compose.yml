@@ -2,6 +2,7 @@ version: '3.3'
 services:
 
   pure-ftpd-1:
+    restart: always
     build: pure-ftpd
     ports:
       - "21:21"
@@ -15,6 +16,7 @@ services:
       - ftp-incoming-1:/home/ftp
 
   mini-launchpad:
+    restart: always
     build:
       context: ../
       dockerfile: ./docker/mini-launchpad/Dockerfile
@@ -25,6 +27,7 @@ services:
       - wwwroot-mini-launchpad:/root/build-logs
 
   mini-launchpad-web:
+    restart: always
     image: httpd
     ports:
       - "9080:80"
@@ -32,6 +35,7 @@ services:
       - wwwroot-mini-launchpad:/usr/local/apache2/htdocs/build-logs
 
   pure-ftpd-2:
+    restart: always
     build: pure-ftpd
     ports:
       - "8021:8021"
@@ -45,6 +49,7 @@ services:
       - ftp-incoming-2:/home/ftp
 
   mini-dinstall:
+    restart: always
     build:
         context: ./mini-dinstall
         dockerfile: ./Dockerfile
@@ -53,6 +58,7 @@ services:
       - wwwroot-mini-dinstall:/root/archive
       
   mini-dinstall-web:
+    restart: always
     image: httpd
     ports:
       - "80:80"

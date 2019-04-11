@@ -109,12 +109,16 @@ class MiniLaunchpad (FileSystemEventHandler):
                 thread = Thread(target = self.build_package,
                                 args = (input_files_tmp_dir, dist, arch, pkg_file))
                 thread.start()
-                threads.append(thread)
-                time.sleep(1)
 
-        # Wait for all build threads to complete
-        for thread in threads:
-            thread.join()
+                # Process one job at a time.
+                thread.join()
+                #threads.append(thread)
+                #time.sleep(1)
+
+        # Only processing one job at a time now.
+        # # Wait for all build threads to complete
+        # for thread in threads:
+        #     thread.join()
 
         print('Build complete: %s' % pkg_file)
         shutil.rmtree(input_files_tmp_dir) # remove temporary directory

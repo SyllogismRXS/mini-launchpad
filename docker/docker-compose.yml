@@ -69,11 +69,11 @@ services:
     restart: always
     build: pure-ftpd
     ports:
-      - "8022:8022"
+      - "9021:9021"
       - "50000-50009:50000-50009"
     environment:
       PUBLICHOST: "localhost"
-      LISTEN_PORT: "8022"
+      LISTEN_PORT: "9021"
       PORT_RANGE: "50000:50009"
       ADDED_FLAGS: "--verboselog"
     volumes:

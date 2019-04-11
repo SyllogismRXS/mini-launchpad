@@ -1,0 +1,5 @@
+Origin: gtri
+Label: gtri
+Codename: xenial
+Components: main
+Architectures: i386 amd64 armhf arm64

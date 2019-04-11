@@ -56,7 +56,7 @@ services:
     volumes:
       - ftp-incoming-2:/root/archive/mini-dinstall/incoming
       - wwwroot-mini-dinstall:/root/archive
-      
+
   mini-dinstall-web:
     restart: always
     image: httpd
@@ -64,10 +64,45 @@ services:
       - "80:80"
     volumes:
       - wwwroot-mini-dinstall:/usr/local/apache2/htdocs/archive
-    
+
+  pure-ftpd-3:
+    restart: always
+    build: pure-ftpd
+    ports:
+      - "8022:8022"
+      - "50000-50009:50000-50009"
+    environment:
+      PUBLICHOST: "localhost"
+      LISTEN_PORT: "8022"
+      PORT_RANGE: "50000:50009"
+      ADDED_FLAGS: "--verboselog"
+    volumes:
+      - ftp-incoming-3:/home/ftp
+
+  reprepro:
+    build:
+      context: ./reprepro
+      dockerfile: ./Dockerfile
+    environment:
+      DISTRIBUTION: "xenial"
+    volumes:
+      - ftp-incoming-3:/root/incoming
+      - wwwroot-reprepro:/var/repositories
+      - ./reprepro/conf:/var/repositories/conf
+
+  reprepro-web:
+    restart: always
+    image: httpd
+    ports:
+      - "81:80"
+    volumes:
+      - wwwroot-reprepro:/usr/local/apache2/htdocs/archive
+
 volumes:
   ftp-incoming-1:
   wwwroot-mini-launchpad:
   ftp-incoming-2:
   wwwroot-mini-dinstall:
+  ftp-incoming-3:
   pbuilder-cache:
+  wwwroot-reprepro:

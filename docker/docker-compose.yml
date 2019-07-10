@@ -1,83 +1,104 @@
 version: '3.3'
 services:
 
-  pure-ftpd-1:
-    restart: always
+  #ftpd-deb-src:
+  #  image: stilliard/pure-ftpd:hardened
+  #  container_name: pure-ftpd
+  #  build: pure-ftpd
+  #  ports:
+  #    - "21:21"
+  #    - "30000-30009:30000-30009"
+  #  environment:
+  #    PUBLICHOST: "localhost"
+  #    LISTEN_PORT: "21"
+  #    PORT_RANGE: "30000:30009"
+  #    ADDED_FLAGS: "--verboselog"
+  #  volumes:
+  #    - ftpd-deb-src-incoming:/home/ftp
+
+  ftpd-deb-src:
     build: pure-ftpd
     ports:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
       PUBLICHOST: "localhost"
-      LISTEN_PORT: "21"
       PORT_RANGE: "30000:30009"
       ADDED_FLAGS: "--verboselog"
     volumes:
-      - ftp-incoming-1:/home/ftp
+      - ftpd-deb-src-incoming:/home/ftp
 
   mini-launchpad:
-    restart: always
     build:
       context: ../
       dockerfile: ./docker/mini-launchpad/Dockerfile
     privileged: true
     volumes:
-      - ftp-incoming-1:/root/incoming
+      - ftpd-deb-src-incoming:/root/incoming
       - pbuilder-cache:/var/cache/pbuilder
       - wwwroot-mini-launchpad:/root/build-logs
 
   mini-launchpad-web:
-    restart: always
     image: httpd
     ports:
       - "9080:80"
     volumes:
       - wwwroot-mini-launchpad:/usr/local/apache2/htdocs/build-logs
 
-  pure-ftpd-2:
-    restart: always
+  ftpd-deb-bin:
     build: pure-ftpd
     ports:
-      - "8021:8021"
+      - "8021:21"
       - "40000-40009:40000-40009"
     environment:
       PUBLICHOST: "localhost"
-      LISTEN_PORT: "8021"
       PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"
     volumes:
-      - ftp-incoming-2:/home/ftp
+      - ftpd-deb-bin-incoming:/home/ftp
 
-  mini-dinstall:
-    restart: always
-    build:
-        context: ./mini-dinstall
-        dockerfile: ./Dockerfile
-    volumes:
-      - ftp-incoming-2:/root/archive/mini-dinstall/incoming
-      - wwwroot-mini-dinstall:/root/archive
+  #ftpd-deb-bin:
+  #  image: stilliard/pure-ftpd:hardened
+  #  container_name: pure-ftpd
+  #  build: pure-ftpd
+  #  ports:
+  #    - "8021:8021"
+  #    - "40000-40009:40000-40009"
+  #  environment:
+  #    PUBLICHOST: "localhost"
+  #    LISTEN_PORT: "8021"
+  #    PORT_RANGE: "40000:40009"
+  #    ADDED_FLAGS: "--verboselog"
+  #  volumes:
+  #    - ftpd-deb-bin-incoming:/home/ftp
 
-  mini-dinstall-web:
-    restart: always
-    image: httpd
-    ports:
-      - "80:80"
-    volumes:
-      - wwwroot-mini-dinstall:/usr/local/apache2/htdocs/archive
+  #pure-ftpd-2:
+  #  build: pure-ftpd
+  #  ports:
+  #    - "8021:8021"
+  #    - "40000-40009:40000-40009"
+  #  environment:
+  #    PUBLICHOST: "localhost"
+  #    LISTEN_PORT: "8021"
+  #    PORT_RANGE: "40000:40009"
+  #    ADDED_FLAGS: "--verboselog"
+  #  volumes:
+  #    - ftp-incoming-2:/home/ftp
 
-  pure-ftpd-3:
-    restart: always
-    build: pure-ftpd
-    ports:
-      - "9021:9021"
-      - "50000-50009:50000-50009"
-    environment:
-      PUBLICHOST: "localhost"
-      LISTEN_PORT: "9021"
-      PORT_RANGE: "50000:50009"
-      ADDED_FLAGS: "--verboselog"
-    volumes:
-      - ftp-incoming-3:/home/ftp
+  #mini-dinstall:
+  #  build:
+  #      context: ./mini-dinstall
+  #      dockerfile: ./Dockerfile
+  #  volumes:
+  #    - ftp-incoming-2:/root/archive/mini-dinstall/incoming
+  #    - wwwroot-mini-dinstall:/root/archive
+  #
+  #mini-dinstall-web:
+  #  image: httpd
+  #  ports:
+  #    - "80:80"
+  #  volumes:
+  #    - wwwroot-mini-dinstall:/usr/local/apache2/htdocs/archive
 
   reprepro:
     build:
@@ -86,23 +107,53 @@ services:
     environment:
       DISTRIBUTION: "xenial"
     volumes:
-      - ftp-incoming-3:/root/incoming
+      - ftpd-deb-bin-incoming:/root/incoming
       - wwwroot-reprepro:/var/repositories
       - ./reprepro/conf:/var/repositories/conf
-
+  
   reprepro-web:
-    restart: always
     image: httpd
     ports:
-      - "81:80"
+      - "80:80"
     volumes:
       - wwwroot-reprepro:/usr/local/apache2/htdocs/archive
 
+  #pure-ftpd-3:
+  #  build: pure-ftpd
+  #  ports:
+  #    - "9021:9021"
+  #    - "50000-50009:50000-50009"
+  #  environment:
+  #    PUBLICHOST: "localhost"
+  #    LISTEN_PORT: "9021"
+  #    PORT_RANGE: "50000:50009"
+  #    ADDED_FLAGS: "--verboselog"
+  #  volumes:
+  #    - ftp-incoming-3:/home/ftp
+  #
+  #reprepro:
+  #  build:
+  #    context: ./reprepro
+  #    dockerfile: ./Dockerfile
+  #  environment:
+  #    DISTRIBUTION: "xenial"
+  #  volumes:
+  #    - ftp-incoming-3:/root/incoming
+  #    - wwwroot-reprepro:/var/repositories
+  #    - ./reprepro/conf:/var/repositories/conf
+  #
+  #reprepro-web:
+  #  image: httpd
+  #  ports:
+  #    - "81:80"
+  #  volumes:
+  #    - wwwroot-reprepro:/usr/local/apache2/htdocs/archive
+
 volumes:
-  ftp-incoming-1:
+  ftpd-deb-src-incoming:
   wwwroot-mini-launchpad:
-  ftp-incoming-2:
-  wwwroot-mini-dinstall:
-  ftp-incoming-3:
+  ftpd-deb-bin-incoming:
+  #wwwroot-mini-dinstall:
+  #ftp-incoming-3:
   pbuilder-cache:
   wwwroot-reprepro:

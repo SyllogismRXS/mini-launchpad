@@ -156,9 +156,9 @@ class MiniLaunchpad (FileSystemEventHandler):
 	    dput_success = False
 	    for file in os.listdir(tmp_dir):
 		if file.endswith(arch + ".changes"):
-		    dput_cmd = "dput --config " + self.args.dput_config + " " +\
+		    dput_cmd = "USER=anonymous dput --config " + self.args.dput_config + " " +\
 			       self.args.dput_name + " " + os.path.join(tmp_dir, file)
-		    print("DIST=%s, ARCH=%s, PKG=%s dput command: %s" % (dist, arch, pkg_file, dput_cmd))
+		    print("DIST=%s, ARCH=%s, PKG=%s, dput command: %s" % (dist, arch, pkg_file, dput_cmd))
 		    subprocess.call(dput_cmd, cwd=tmp_dir, shell=True)
 		    dput_success = True
 

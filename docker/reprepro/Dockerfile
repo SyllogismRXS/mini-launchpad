@@ -25,4 +25,6 @@ ADD incoming.py /root/incoming.py
 
 CMD /root/incoming.py --base-repository /var/repositories \
                       --distribution ${DISTRIBUTION} \
-                      --incoming-dir /root/incoming
+                      --incoming-dir /root/incoming \
+                      ${ALLOW_SAME_VERSION_FLAG} \
+                      ${NO_CHANGES_FILE_FLAG}

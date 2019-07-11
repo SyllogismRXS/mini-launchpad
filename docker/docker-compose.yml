@@ -22,7 +22,7 @@ services:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
-      PUBLICHOST: "localhost"
+      PUBLICHOST: "ftpd-deb-src"
       PORT_RANGE: "30000:30009"
       ADDED_FLAGS: "--verboselog"
     volumes:
@@ -33,6 +33,10 @@ services:
       context: ../
       dockerfile: ./docker/mini-launchpad/Dockerfile
     privileged: true
+    environment:
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      - ftpd-deb-src
     volumes:
       - ftpd-deb-src-incoming:/root/incoming
       - pbuilder-cache:/var/cache/pbuilder
@@ -42,6 +46,8 @@ services:
     image: httpd
     ports:
       - "9080:80"
+    depends_on:
+      - mini-launchpad
     volumes:
       - wwwroot-mini-launchpad:/usr/local/apache2/htdocs/build-logs
 
@@ -51,7 +57,7 @@ services:
       - "8021:21"
       - "40000-40009:40000-40009"
     environment:
-      PUBLICHOST: "localhost"
+      PUBLICHOST: "ftpd-deb-bin"
       PORT_RANGE: "40000:40009"
       ADDED_FLAGS: "--verboselog"
     volumes:
@@ -104,8 +110,13 @@ services:
     build:
       context: ./reprepro
       dockerfile: ./Dockerfile
+    depends_on:
+      - ftpd-deb-bin
     environment:
       DISTRIBUTION: "xenial"
+      NO_CHANGES_FILE_FLAG: ""
+      ALLOW_SAME_VERSION_FLAG: "--allow-same-version"
+      PYTHONUNBUFFERED: 1
     volumes:
       - ftpd-deb-bin-incoming:/root/incoming
       - wwwroot-reprepro:/var/repositories
@@ -113,6 +124,8 @@ services:
   
   reprepro-web:
     image: httpd
+    depends_on:
+      - reprepro
     ports:
       - "80:80"
     volumes:

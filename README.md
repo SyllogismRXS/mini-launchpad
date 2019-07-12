@@ -49,6 +49,11 @@ packages using the apt-get sources defined in
 environments. This can take about five minutes and needs to be
 completed before packages can be uploaded.
 
+You can view the terminal output from the mini-launchpad system with
+the `docker-compose` `logs` command:
+
+    $ docker-compose -p mlp logs -f
+
 ## Shutdown mini-launchpad
 
     $ docker-compose -p mlp stop
@@ -62,11 +67,14 @@ locally) to mini-dinstall.
 
 ## Setup local ~/.dput.cf configuration
 
-In order to upload debian source and binary packages to mini-launchpad, you
-need to configure your `~/.dput.cf` file.  An example `dput.cf` file is
-provided with this repository. Update your own `~/.dput.cf` file to include
-the information from `dput.cf`. Once updated, you can upload a debian source
-package with the following command:
+In order to upload debian source and binary packages to
+mini-launchpad, you need to configure your `~/.dput.cf` file (See
+[dput
+documentation](http://manpages.ubuntu.com/manpages/xenial/man1/dput.1.html)).
+An example `dput.cf` file is provided with this repository. Update
+your own `~/.dput.cf` file to include the information from
+`dput.cf`. Once updated, you can upload a debian source package with
+the following command:
 
     $ dput server-source /path/to/<package>_source.changes
 
@@ -93,6 +101,9 @@ sources and check the policy for a package you pushed to your server:
     $ apt-cache policy <package-name>
 
 ## Removing packages in mini-dinstall
+
+See the [reprepro
+documentation](https://manpages.debian.org/stretch/reprepro/reprepro.1.en.html)
 
 To remove packages from the server, login to the reprepro container:
 

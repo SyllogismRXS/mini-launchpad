@@ -16,12 +16,15 @@ work:
 
     $ apt-get install qemu-user-static
 
-Modify the ``./docker/docker-compose.yml`` file by changing ``PUBLICHOST:
-"localhost"`` to use your specific server IP address for passive FTP uploads
-for both pure-ftpd services. Also, modify the ``fqdn`` line in
-``./docker/mini-launchpad/dput.cf`` to point to your server's IP address (e.g.,
-``fqdn = 192.168.1.139:8021``). Just using ``localhost`` breaks the PASV FTP
-functionality.
+Create a `.env` file for docker-compose that contains the server's
+public IP address. If you want to be able to use `dput` from a remote
+machine (due to the ftp server's passive mode), you must substitute
+the server's IP address for `localhost` in the following command:
+
+    $ echo "PUBLICHOST=localhost" > ./docker/.env
+
+Likewise, change `localhost` to the server's IP address in
+`./docker/mini-launchpad/dput.cf`.
 
 Build the docker images:
 
@@ -29,16 +32,22 @@ Build the docker images:
     $ docker-compose -p mlp build
 
 Setup the pbuilder environments inside of the mini-launchpad container /
-volume.  The following can take a long time (~20 minutes) and it will be
+volume.  The following can take a long time (~30 minutes) and it will be
 running in "privileged" mode:
 
     $ docker-compose -p mlp up mini-launchpad
 
-After ``pbuilder environment configuration complete`` is printed to the
-terminal, type ``CTRL+c`` to stop the mini-launchpad docker container. We can
+After `pbuilder environment configuration complete` is printed to the
+terminal, type `CTRL+c` to stop the mini-launchpad docker container. We can
 now startup the entire mini-launchpad system:
 
     $ docker-compose -p mlp up -d
+
+Everytime mini-launchpad starts up, it refreshes the available debian
+packages using the apt-get sources defined in
+`./docker/mini-launchpad/pbuilderrc` for each of the pbuilder
+environments. This can take about five minutes and needs to be
+completed before packages can be uploaded.
 
 ## Shutdown mini-launchpad
 
@@ -54,9 +63,9 @@ locally) to mini-dinstall.
 ## Setup local ~/.dput.cf configuration
 
 In order to upload debian source and binary packages to mini-launchpad, you
-need to configure your ``~/.dput.cf`` file.  An example ``dput.cf`` file is
-provided with this repository. Update your own ``~/.dput.cf`` file to include
-the information from ``dput.cf``. Once updated, you can upload a debian source
+need to configure your `~/.dput.cf` file.  An example `dput.cf` file is
+provided with this repository. Update your own `~/.dput.cf` file to include
+the information from `dput.cf`. Once updated, you can upload a debian source
 package with the following command:
 
     $ dput server-source /path/to/<package>_source.changes
@@ -73,64 +82,34 @@ In order to download and install (using apt-get) the debian packages built by
 mini-launchpad, you need to configure the sources.list file on your local
 machine.
 
-Add the following line to your ``/etc/apt/sources.list`` file:
+Add the following line to your `/etc/apt/sources.list` file:
 
-    deb [trusted=yes] http://<SERVER-IP>/archive xenial/<ARCH>/
+    deb [trusted=yes] http://<SERVER-IP>/archive/ xenial main
 
-where, ``<ARCH>`` could be amd64, armhf, i386, arm64, etc and ``<SERVER-IP>``
-is the server's IP address. Now update your sources and check the policy for a
-package you pushed to your server:
+where `<SERVER-IP>` is the server's IP address. Now update your
+sources and check the policy for a package you pushed to your server:
 
     $ sudo apt-get update
     $ apt-cache policy <package-name>
 
 ## Removing packages in mini-dinstall
 
-To remove packages from the server, login to the mini-dinstall container:
+To remove packages from the server, login to the reprepro container:
 
-    $ docker exec -it mlp_mini-dinstall_1 /bin/bash
+    $ docker exec -it mlp_reprepro_1 /bin/bash
 
-From there you will want to navigate to the directory where the packages live:
+You can use `reprepro` to manage the debian packages. For example, to
+list the available xenial packages run the following command:
 
-    $ cd ~/archive/xenial
+    $ reprepro -b /var/repositories list xenial
 
-Here we should have all our packages organized by supported architectures. The
-next step is to remove all instances of the package we want to remove. (To
-double check what files you'll be purging remove the -delete flag).
+To remove a package, run the following command:
 
-    $ find . -name "dumby-package*" -type f -delete
-
-Lastly, we want to remove the *.db files located in this directory as they keep
-stored information about packages uploaded and don't update when the same
-package is sent to the server causing conflicts when attempting to fetch it
-later on.
-
-    $ rm *.db
-
-## Hash Sum mismatch Error
-
-If you receive a "Hash Sum mismatch" error when trying to install packages with
-apt-get, the "Packages" file on the server may have to be regenerated. This is
-mostly easily accomplished by removing the ``*.db`` files on the server and
-restarting mini-launchpad. For example,
-
-    $ docker exec -it mlp_mini-dinstall_1 /bin/bash
-    $ cd ~/archive/xenial.db
-    $ rm *.db
-    $ exit                            # exit the mini-dinstall container
-    $ docker-compose -p mlp stop      # stop mini-launchpad
-    $ docker-compose -p mlp up -d     # start mini-launchpad
-    $ docker-compose -p mlp logs -f   # Check mini-dinstall logs
-
-The client computer's (where apt-get install is run) cached version of the
-Packages file has to be removed as well:
-
-    $ sudo rm -rf /var/lib/apt/lists/*
-    $ sudo apt-get update
+    $ reprepro -b /var/repositories remove xenial <package-name>
 
 ## Access Build Logs
 
-Open a browser and navigate to ``http://<SERVER-IP>:9080/build-logs``
+Open a browser and navigate to `http://<SERVER-IP>:9080/build-logs`
 
 # Other Related Projects
 

@@ -166,8 +166,7 @@ class MiniLaunchpad (FileSystemEventHandler):
 		print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
 		subprocess.call(['ls', tmp_dir])
 
-            #print('Removing tmp dir: %s' % tmp_dir)
-	    #shutil.rmtree(tmp_dir)
+	    shutil.rmtree(tmp_dir)
 
 	except Exception as e:
             print('Exception triggered in build_package, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))

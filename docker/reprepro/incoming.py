@@ -106,7 +106,7 @@ class ProcessIncoming(FileSystemEventHandler):
             shutil.move(os.path.join(self.args.incoming_dir, f), input_files_tmp_dir + "/")
 
         self.process_deb(input_files_tmp_dir, details['name'])
-        #shutil.rmtree(input_files_tmp_dir)
+        shutil.rmtree(input_files_tmp_dir)
 
     def process_deb(self, dir_path, package_name):
         deb_filename = 'INVALID'

@@ -63,24 +63,22 @@ the `docker-compose` `logs` command:
 The following are the setup instructions on your local machine, not the
 server. On a local machine, you may use dput to push debian source packages to
 mini-launchpad or use dput to push debian binary packages (that you have built
-locally) to mini-dinstall.
+locally) to reprepro.
 
 ## Setup local ~/.dput.cf configuration
 
-In order to upload debian source and binary packages to
-mini-launchpad, you need to configure your `~/.dput.cf` file (See
-[dput
-documentation](http://manpages.ubuntu.com/manpages/xenial/man1/dput.1.html)).
-An example `dput.cf` file is provided with this repository. Update
-your own `~/.dput.cf` file to include the information from
-`dput.cf`. Once updated, you can upload a debian source package with
-the following command:
+In order to upload debian source and binary packages to mini-launchpad, you
+need to configure your `~/.dput.cf` file (See
+[dput documentation](http://manpages.ubuntu.com/manpages/xenial/man1/dput.1.html)).
+An example `dput.cf` file is provided with this repository. Update your own
+`~/.dput.cf` file to include the information from `dput.cf`. Once updated, you
+can upload a debian source package with the following command:
 
     $ dput server-source /path/to/<package>_source.changes
 
 If you want to build a local version of a debian package and upload it directly
-to mini-dinstall (bypassing the mini-launchpad build process), use the
-following dput command:
+to reprepro (bypassing the mini-launchpad build process), use the following
+dput command:
 
     $ dput server-binary /path/to/<package>_<arch>.changes
 
@@ -100,7 +98,7 @@ sources and check the policy for a package you pushed to your server:
     $ sudo apt-get update
     $ apt-cache policy <package-name>
 
-## Removing packages in mini-dinstall
+## Removing packages from server
 
 See the [reprepro
 documentation](https://manpages.debian.org/stretch/reprepro/reprepro.1.en.html)

@@ -4,6 +4,7 @@ services:
   # ftpd server that accepts debian source packages
   ftpd-deb-src:
     build: pure-ftpd
+    image: mlp/pure-ftpd
     ports:
       - "21:21"
       - "30000-30009:30000-30009"
@@ -59,6 +60,7 @@ services:
     build:
       context: ./reprepro
       dockerfile: ./Dockerfile
+    image: mlp/reprepro
     depends_on:
       - ftpd-deb-bin
     environment:

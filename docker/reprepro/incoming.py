@@ -84,15 +84,23 @@ class ProcessIncoming(FileSystemEventHandler):
             thread.start()
 
         elif self.args.no_changes_file and event.event_type == 'created' and event.src_path.endswith('.deb'):
-            print('Debian binary file uploaded: waiting 3 seconds...')
-            time.sleep(3)
+            thread = Thread(target = self.process_binary_upload, args = (event.src_path,))
+            thread.start()
 
-            # Get the package name from the .deb file
-            cmd = 'dpkg-deb --field ' + event.src_path + ' Package'
-            package_name = subprocess.check_output(cmd.split()).strip()
+    def process_binary_upload(self, debian_file):
+        print('Debian binary file uploaded: waiting 3 seconds...')
+        time.sleep(3)
 
-            process_deb(self.args.incoming_dir, package_name)
-            os.remove(event.src_path)
+        # Get the package name from the .deb file
+        cmd = 'dpkg-deb --field ' + debian_file + ' Package'
+        package_name = subprocess.check_output(cmd.split()).strip()
+
+        # Move the uploaded debian file into a temporary directory
+        input_files_tmp_dir = tempfile.mkdtemp()
+        shutil.move(debian_file, input_files_tmp_dir + "/")
+
+        self.process_deb(input_files_tmp_dir, package_name)
+        shutil.rmtree(input_files_tmp_dir)
 
     def process_changes_upload(self, changes_file):
         print('Changes file uploaded: waiting 3 seconds...')

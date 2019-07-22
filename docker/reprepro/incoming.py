@@ -48,6 +48,7 @@ def binary_deb_arch(deb_file):
 
 class ProcessIncoming(FileSystemEventHandler):
     def __init__(self):
+        self.LOCKFILE_ERROR_CODE = 239
         parser = argparse.ArgumentParser(description='Watch incoming debs and call reprepro',
                                          formatter_class=ArgumentDefaultsHelpFormatter)
         add = parser.add_argument
@@ -133,35 +134,44 @@ class ProcessIncoming(FileSystemEventHandler):
 
         cmd = 'reprepro -b ' + self.args.base_repository + ' includedeb ' \
             + self.args.distribution + ' ' + deb_filename
-        print(cmd)
-
-        try:
-            subprocess.check_call(cmd.split())
-        except Exception as e:
-            print(e)
+        self.run_reprepro_cmd(cmd)
 
     def package_exists(self, package_name, arch):
         cmd = 'reprepro -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' ls ' + package_name
-        try:
-            result = subprocess.check_output(cmd.split()).strip()
-            if result == "":
-                return False
-        except Exception as e:
-            print(e)
-
-        return True
+        while True:
+            try:
+                result = subprocess.check_output(cmd.split()).strip()
+                return result != ""
+            except subprocess.CalledProcessError as e:
+                if e.returncode == self.LOCKFILE_ERROR_CODE:
+                    print('reprepro lockfile exists. Retrying after 1 second.')
+                    time.sleep(1)
+            except Exception as e:
+                print('package_exists() exception')
+                print(e)
 
     def remove_package(self, package_name, arch):
         cmd = 'reprepro -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' remove ' \
             + self.args.distribution + ' ' + package_name
-        print(cmd)
+        self.run_reprepro_cmd(cmd)
 
-        try:
-            subprocess.check_call(cmd.split())
-        except Exception as e:
-            print(e)
+    def run_reprepro_cmd(self, cmd):
+        # Call the reprepro command until it is successful
+        while True:
+            try:
+                subprocess.check_call(cmd.split())
+                print('Successfully ran: %s' % cmd)
+                break
+
+            except subprocess.CalledProcessError as e:
+                if e.returncode == self.LOCKFILE_ERROR_CODE:
+                    print('reprepro lockfile exists. Retrying after 1 second.')
+                    time.sleep(1)
+                else:
+                    print(e)
+                    break
 
     def remove_oninit(self, path):
 	# If our directory has something within. Purge!

@@ -65,6 +65,55 @@ server. On a local machine, you may use dput to push debian source packages to
 mini-launchpad or use dput to push debian binary packages (that you have built
 locally) to reprepro.
 
+## Setup Reprepro GPG signature
+
+Mini-launchpad will be enforcing the signing of debian packages with Reprepro.
+
+### Creating and adding GPG key to project
+One important component of generating a secure APT repository is to sign the repository
+metadata with a GPG key. This repo by default will require a generation of a pri/pub key.
+
+Generate keys using the following command:
+
+    $ gpg --gen-key
+
+(Website with [instructions](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/security_guide/sect-security_guide-encryption-gpg-creating_gpg_keys_using_the_command_line)).
+
+Once you've generated your keys, you will want to extract the private key.
+
+    $ cd /path/to/docker/reprepro/data
+    $ gpg --export-secret-key -a "User Name" > private.key
+
+This folder is used during the docker build in order to load the private key that reprepro
+will use to sign the repository with.
+
+### Reprepro public key to Keyserver
+
+After generating your private key (to be used to sign packages), you will need to share your public key in
+order to allow users to be able to authenticate your packages.
+
+Option #1:
+
+    $ gpg --armor --export user@email.com
+
+Copy the public key displayed and submit this key to [OpenPGPKeyserver](http://keyserver.ubuntu.com/).
+
+Option #2:
+
+    $ gpg --keyserver search.keyserver.net --send-key user@email.com
+
+### Sharing public key id
+
+After publishing your public key, obtain the long key ID in order to share with others.
+
+    $ gpg --keyid-format long --list-keys user@email.com | grep -E -o -m1 '[a-zA-Z0-9]{16}'
+
+Now you'll need to provide users with the ability to authenticate your packages by providing
+the following:
+
+    $ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys <long-key-id>
+
+
 ## Setup local ~/.dput.cf configuration
 
 In order to upload debian source and binary packages to mini-launchpad, you

@@ -132,12 +132,12 @@ class ProcessIncoming(FileSystemEventHandler):
             else:
                 print('Package already exists, but not removing: %s' % package_name)
 
-        cmd = 'reprepro -b ' + self.args.base_repository + ' includedeb ' \
+        cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository + ' includedeb ' \
             + self.args.distribution + ' ' + deb_filename
         self.run_reprepro_cmd(cmd)
 
     def package_exists(self, package_name, arch):
-        cmd = 'reprepro -b ' + self.args.base_repository \
+        cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' ls ' + package_name
         while True:
             try:
@@ -152,7 +152,7 @@ class ProcessIncoming(FileSystemEventHandler):
                 print(e)
 
     def remove_package(self, package_name, arch):
-        cmd = 'reprepro -b ' + self.args.base_repository \
+        cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' remove ' \
             + self.args.distribution + ' ' + package_name
         self.run_reprepro_cmd(cmd)

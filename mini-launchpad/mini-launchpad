@@ -22,7 +22,7 @@ class MiniLaunchpad (FileSystemEventHandler):
         parser = argparse.ArgumentParser(description='Your Local Build Server of Awesomeness',
                                         formatter_class=ArgumentDefaultsHelpFormatter)
         add = parser.add_argument
-        add('--dist', nargs='+', default='xenial',
+        add('--dist', nargs='+', default=['xenial', 'bionic'],
                            help='Distributions you want to support')
         add('--arch', nargs='+', default='amd64',
                            help='Architectures you want to support')

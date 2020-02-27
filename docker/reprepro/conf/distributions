@@ -1,6 +1,13 @@
-Origin: gtri
-Label: gtri
+Origin: atas.gtri.gatech.edu
+Label: atas.gtri.gatech.edu
 Codename: xenial
+Components: main
+Architectures: i386 amd64 armhf arm64
+SignWith: yes
+
+Origin: atas.gtri.gatech.edu
+Label: atas.gtri.gatech.edu
+Codename: bionic
 Components: main
 Architectures: i386 amd64 armhf arm64
 SignWith: yes

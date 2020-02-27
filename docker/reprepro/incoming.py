@@ -14,7 +14,8 @@ from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
 def get_package_details(changes_file):
-    name = 'INVALID'
+    name = None
+    distribution = None
     filenames = [changes_file]
     storing_filenames = False
 
@@ -23,6 +24,10 @@ def get_package_details(changes_file):
             if "Binary:" in line:
                 tokens = line.strip().split(' ')
                 name = tokens[1]
+
+            if "Distribution:" in line:
+                tokens = line.strip().split(' ')
+                distribution = tokens[1]
 
             if storing_filenames:
                 tokens = line.strip().split(' ')
@@ -33,6 +38,7 @@ def get_package_details(changes_file):
 
     details = {}
     details['name'] = name
+    details['distribution'] = distribution
     details['filenames'] = filenames
 
     return details
@@ -54,8 +60,8 @@ class ProcessIncoming(FileSystemEventHandler):
         add = parser.add_argument
         add('-b', '--base-repository', default='/var/repositories',
             help='Base repository directory')
-        add('-d', '--distribution', default='xenial',
-            help='default distribution name')
+        add('--dist', nargs='+', default=['xenial', 'bionic'],
+            help='Distributions you want to support')
         add('-i', '--incoming-dir', default='.',
             help='Incoming directory to watch')
         add('-n', '--no-changes-file', default=False, action='store_true')
@@ -100,7 +106,11 @@ class ProcessIncoming(FileSystemEventHandler):
         input_files_tmp_dir = tempfile.mkdtemp()
         shutil.move(debian_file, input_files_tmp_dir + "/")
 
-        self.process_deb(input_files_tmp_dir, package_name)
+        # If we are processing a binary upload directly from a .deb, we can't
+        # determine the distribution, so just add it to all default
+        # distributions. The user should run two instances of reprepro if they
+        # want to keep separate distributions in this case.
+        self.process_deb(input_files_tmp_dir, self.args.dists, package_name)
         shutil.rmtree(input_files_tmp_dir)
 
     def process_changes_upload(self, changes_file):
@@ -109,15 +119,17 @@ class ProcessIncoming(FileSystemEventHandler):
 
         input_files_tmp_dir = tempfile.mkdtemp()
 
-        # Move the changes file and package related files to temp dir
+        # Parse the changes file and extract package details
         details = get_package_details(changes_file)
+
+        # Move the changes file and package related files to temp dir
         for f in details['filenames']:
             shutil.move(os.path.join(self.args.incoming_dir, f), input_files_tmp_dir + "/")
 
-        self.process_deb(input_files_tmp_dir, details['name'])
+        self.process_deb(input_files_tmp_dir, [details['distribution']], details['name'])
         shutil.rmtree(input_files_tmp_dir)
 
-    def process_deb(self, dir_path, package_name):
+    def process_deb(self, dir_path, dists, package_name):
         deb_filename = 'INVALID'
         for file in os.listdir(dir_path):
             if file.endswith(".deb"):
@@ -125,24 +137,25 @@ class ProcessIncoming(FileSystemEventHandler):
 
         arch = binary_deb_arch(deb_filename)
 
-        if self.package_exists(package_name, arch):
-            if self.args.allow_same_version:
-                print('Removing package that already exists: %s' % package_name)
-                self.remove_package(package_name, arch)
-            else:
-                print('Package already exists, but not removing: %s' % package_name)
+        for dist in dists:
+            if self.package_exists(package_name, dist, arch):
+                if self.args.allow_same_version:
+                    print('Removing package that already exists: %s' % package_name)
+                    self.remove_package(package_name, dist, arch)
+                else:
+                    print('Package already exists, but not removing: %s' % package_name)
 
-        cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository + ' includedeb ' \
-            + self.args.distribution + ' ' + deb_filename
-        self.run_reprepro_cmd(cmd)
+            cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository + ' includedeb ' \
+                + dist + ' ' + deb_filename
+            self.run_reprepro_cmd(cmd)
 
-    def package_exists(self, package_name, arch):
+    def package_exists(self, package_name, dist, arch):
         cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' ls ' + package_name
         while True:
             try:
                 result = subprocess.check_output(cmd.split()).strip()
-                return result != ""
+                return dist in result
             except subprocess.CalledProcessError as e:
                 if e.returncode == self.LOCKFILE_ERROR_CODE:
                     print('reprepro lockfile exists. Retrying after 1 second.')
@@ -151,10 +164,10 @@ class ProcessIncoming(FileSystemEventHandler):
                 print('package_exists() exception')
                 print(e)
 
-    def remove_package(self, package_name, arch):
+    def remove_package(self, package_name, dist, arch):
         cmd = 'reprepro --ask-passphrase -b ' + self.args.base_repository \
             + ' --architecture ' + arch + ' remove ' \
-            + self.args.distribution + ' ' + package_name
+            + dist + ' ' + package_name
         self.run_reprepro_cmd(cmd)
 
     def run_reprepro_cmd(self, cmd):

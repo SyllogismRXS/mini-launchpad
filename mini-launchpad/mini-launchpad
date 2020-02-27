@@ -103,17 +103,15 @@ class MiniLaunchpad (FileSystemEventHandler):
 
         # Create a new thread for each build
         threads = []
-        for dist in self.args.dist:
-            for arch in self.args.arch:
-                print('Build thread: DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
-                thread = Thread(target = self.build_package,
-                                args = (input_files_tmp_dir, dist, arch, pkg_file))
-                thread.start()
+        for arch in self.args.arch:
+            thread = Thread(target = self.build_package,
+                            args = (input_files_tmp_dir, arch, pkg_file))
+            thread.start()
 
-                # Process one job at a time.
-                thread.join()
-                #threads.append(thread)
-                #time.sleep(1)
+            # Process one job at a time.
+            thread.join()
+            #threads.append(thread)
+            #time.sleep(1)
 
         # Only processing one job at a time now.
         # # Wait for all build threads to complete
@@ -123,10 +121,8 @@ class MiniLaunchpad (FileSystemEventHandler):
         print('Build complete: %s' % pkg_file)
         shutil.rmtree(input_files_tmp_dir) # remove temporary directory
 
-    def build_package(self, input_files_tmp_dir, dist, arch, pkg_file):
+    def build_package(self, input_files_tmp_dir, arch, pkg_file):
         try:
-	    # Create build logs
-	    log_file = self.log(dist, arch, pkg_file)
 	    # create a temporary directory for this build
 	    tmp_dir = tempfile.mkdtemp()
 
@@ -144,7 +140,24 @@ class MiniLaunchpad (FileSystemEventHandler):
 		print('Cannot find dsc file')
 		return
 
-	    cmd = "DIST="+dist+" ARCH="+arch+" pbuilder --build " \
+            # Determine the distribution that is being targeted:
+            # The .dsc file has an entry of the form: "Distribution: bionic"
+            target_dist = None
+            with open(dsc_file) as f:
+                file_contents = f.read()
+                for dist in self.args.dist:
+                    if 'Distribution: %s' % dist in file_contents:
+                        target_dist = dist
+                        break
+
+            if target_dist is None:
+                print('Cannot determine source package target distribution.')
+                return
+
+            # Create build logs
+	    log_file = self.log(target_dist, arch, pkg_file)
+
+	    cmd = "DIST="+target_dist+" ARCH="+arch+" pbuilder --build " \
 		  "--configfile " + self.args.pbuilder_config + " " \
 		  "--buildresult " + tmp_dir + " " + dsc_file
 
@@ -158,18 +171,18 @@ class MiniLaunchpad (FileSystemEventHandler):
 		if file.endswith(arch + ".changes"):
 		    dput_cmd = "USER=anonymous dput --config " + self.args.dput_config + " " +\
 			       self.args.dput_name + " " + os.path.join(tmp_dir, file)
-		    print("DIST=%s, ARCH=%s, PKG=%s, dput command: %s" % (dist, arch, pkg_file, dput_cmd))
+		    print("DIST=%s, ARCH=%s, PKG=%s, dput command: %s" % (target_dist, arch, pkg_file, dput_cmd))
 		    subprocess.call(dput_cmd, cwd=tmp_dir, shell=True)
 		    dput_success = True
 
 	    if not dput_success:
-		print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
+		print('Failed to dput, DIST=%s, ARCH=%s, PKG=%s' % (target_dist, arch, pkg_file))
 		subprocess.call(['ls', tmp_dir])
 
 	    shutil.rmtree(tmp_dir)
 
 	except Exception as e:
-            print('Exception triggered in build_package, DIST=%s, ARCH=%s, PKG=%s' % (dist, arch, pkg_file))
+            print('Exception triggered in build_package, DIST=%s, ARCH=%s, PKG=%s' % (target_dist, arch, pkg_file))
             logging.error(traceback.format_exc())
 
     def log(self, dist, arch, pkg_name):

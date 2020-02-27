@@ -64,7 +64,7 @@ services:
     depends_on:
       - ftpd-deb-bin
     environment:
-      DISTRIBUTION: "xenial"
+      DISTRIBUTION: "xenial bionic"
       NO_CHANGES_FILE_FLAG: ""
       ALLOW_SAME_VERSION_FLAG: "--allow-same-version"
       PYTHONUNBUFFERED: 1

@@ -128,22 +128,22 @@ class MiniLaunchpad (FileSystemEventHandler):
 
             # Copy the input files into the temporary directory
 	    for f in os.listdir(input_files_tmp_dir):
-		shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")
+		shutil.copy(os.path.join(input_files_tmp_dir, f), tmp_dir + "/")   
 
-            # Find the .dsc file
-	    dsc_file = None
+            # Find the .changes file
+	    changes_file = None
 	    for file in os.listdir(tmp_dir):
-		if file.endswith(".dsc"):
-		    dsc_file = file
+		if file.endswith(".changes"):
+		    changes_file = file
 
-	    if dsc_file is None:
-		print('Cannot find dsc file')
+	    if changes_file is None:
+		print('Cannot find changes file')
 		return
 
             # Determine the distribution that is being targeted:
-            # The .dsc file has an entry of the form: "Distribution: bionic"
+            # The .changes file has an entry of the form: "Distribution: bionic"
             target_dist = None
-            with open(dsc_file) as f:
+            with open(os.path.join(tmp_dir, changes_file)) as f:
                 file_contents = f.read()
                 for dist in self.args.dist:
                     if 'Distribution: %s' % dist in file_contents:
@@ -154,6 +154,16 @@ class MiniLaunchpad (FileSystemEventHandler):
                 print('Cannot determine source package target distribution.')
                 return
 
+            # Find the .dsc file
+	    dsc_file = None
+	    for file in os.listdir(tmp_dir):
+		if file.endswith(".dsc"):
+		    dsc_file = file
+
+	    if dsc_file is None:
+		print('Cannot find dsc file')
+		return
+            
             # Create build logs
 	    log_file = self.log(target_dist, arch, pkg_file)
 

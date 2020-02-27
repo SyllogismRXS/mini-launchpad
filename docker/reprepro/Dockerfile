@@ -30,7 +30,7 @@ RUN gpg --import /root/data/*.key
 ADD incoming.py /root/incoming.py
 
 CMD /root/incoming.py --base-repository /var/repositories \
-                      --distribution ${DISTRIBUTION} \
+                      --dist ${DISTRIBUTION} \
                       --incoming-dir /root/incoming \
                       ${ALLOW_SAME_VERSION_FLAG} \
                       ${NO_CHANGES_FILE_FLAG}

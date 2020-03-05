@@ -1,19 +1,19 @@
 version: '3.3'
 services:
 
-  # ftpd server that accepts debian source packages
-  ftpd-deb-src:
-    build: pure-ftpd
-    image: mlp/pure-ftpd
+  # sftpd server that accepts debian source packages
+  sftpd-deb-src:
+    build:
+      context: ./sftpd
+      dockerfile: ./Dockerfile
+    image: sftpd-mlp
     ports:
-      - "21:21"
-      - "30000-30009:30000-30009"
-    environment:
-      PUBLICHOST: "${PUBLICHOST}"
-      PORT_RANGE: "30000:30009"
-      ADDED_FLAGS: "--verboselog"
+      - "8022:22"
     volumes:
-      - ftpd-deb-src-incoming:/home/ftp
+      - sftpd-deb-src-incoming:/home/myuser/incoming
+      - ./sftpd/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key
+      - ./sftpd/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key
+    command: myuser:pass
 
   # mini-launchpad consumes a debian source package and produces
   # a debian binary package
@@ -25,12 +25,14 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
     depends_on:
-      - ftpd-deb-src
+      - sftpd-deb-src
     volumes:
-      - ftpd-deb-src-incoming:/root/incoming
+      - sftpd-deb-src-incoming:/root/incoming
       - pbuilder-cache:/var/cache/pbuilder
       - wwwroot-mini-launchpad:/root/build-logs
-
+      - ./sftpd-bin/ssh_host_rsa_key:/root/.ssh/id_rsa:ro
+      - ./mini-launchpad/known_hosts:/root/.ssh/known_hosts
+  
   # This web server hosts the mini-launchpad build logs
   mini-launchpad-web:
     image: httpd
@@ -41,19 +43,18 @@ services:
     volumes:
       - wwwroot-mini-launchpad:/usr/local/apache2/htdocs/build-logs
 
-  # ftpd server that accepts debian binary packages from mini-launchpad
-  ftpd-deb-bin:
-    build: pure-ftpd
+  # sftpd server that accepts debian binary packages from mini-launchpad
+  sftpd-deb-bin:
+    image: sftpd-mlp
     ports:
-      - "8021:21"
-      - "40000-40009:40000-40009"
-    environment:
-      PUBLICHOST: "${PUBLICHOST}"
-      PORT_RANGE: "40000:40009"
-      ADDED_FLAGS: "--verboselog"
+      - "8023:22"
     volumes:
-      - ftpd-deb-bin-incoming:/home/ftp
-
+      - sftpd-deb-bin-incoming:/home/myuser/incoming
+      - ./sftpd-bin/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key
+      - ./sftpd-bin/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key
+      - ./sftpd-bin/ssh_host_rsa_key.pub:/home/myuser/.ssh/keys/id_rsa.pub:ro
+    command: myuser:pass
+  
   # reprepro consumes a debian binary package and puts it in a valid
   # debian repository
   reprepro:
@@ -62,17 +63,17 @@ services:
       dockerfile: ./Dockerfile
     image: mlp/reprepro
     depends_on:
-      - ftpd-deb-bin
+      - sftpd-deb-bin
     environment:
       DISTRIBUTION: "xenial bionic"
       NO_CHANGES_FILE_FLAG: ""
       ALLOW_SAME_VERSION_FLAG: "--allow-same-version"
       PYTHONUNBUFFERED: 1
     volumes:
-      - ftpd-deb-bin-incoming:/root/incoming
+      - sftpd-deb-bin-incoming:/root/incoming
       - wwwroot-reprepro:/var/repositories
       - ./reprepro/conf:/var/repositories/conf
-
+  
   # This web server hosts the debian binary repository that is generated
   # by reprepro
   reprepro-web:
@@ -85,8 +86,8 @@ services:
       - wwwroot-reprepro:/usr/local/apache2/htdocs/archive
 
 volumes:
-  ftpd-deb-src-incoming:
+  sftpd-deb-src-incoming:
   wwwroot-mini-launchpad:
-  ftpd-deb-bin-incoming:
+  sftpd-deb-bin-incoming:
   pbuilder-cache:
   wwwroot-reprepro:

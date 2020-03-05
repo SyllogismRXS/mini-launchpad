@@ -34,4 +34,5 @@ RUN mkdir -p ./build
 WORKDIR build
 RUN cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make install
 
+RUN apt-get install -y python-paramiko
 CMD ["/root/mini-launchpad/docker/mini-launchpad/start.sh"]

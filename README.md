@@ -16,16 +16,6 @@ work:
 
     $ apt-get install qemu-user-static
 
-Create a `.env` file for docker-compose that contains the server's
-public IP address. If you want to be able to use `dput` from a remote
-machine (due to the ftp server's passive mode), you must substitute
-the server's IP address for `localhost` in the following command:
-
-    $ echo "PUBLICHOST=localhost" > ./docker/.env
-
-Likewise, change `localhost` to the server's IP address in
-`./docker/mini-launchpad/dput.cf`.
-
 Build the docker images:
 
     $ cd docker
@@ -116,20 +106,29 @@ the following:
 
 ## Setup local ~/.dput.cf configuration
 
-In order to upload debian source and binary packages to mini-launchpad, you
-need to configure your `~/.dput.cf` file (See
-[dput documentation](http://manpages.ubuntu.com/manpages/xenial/man1/dput.1.html)).
-An example `dput.cf` file is provided with this repository. Update your own
-`~/.dput.cf` file to include the information from `dput.cf`. Once updated, you
-can upload a debian source package with the following command:
+Note: The docker-compose configuration provided by this project uses
+the sftp method with dput. The password to both the Debian package
+source and Debian package binary sftp servers is "pass" and the user
+is "myuser". The purpose of using sftp is to workaround the annoyance
+of PASSIVE FTP mode and provide an "anonymous"-like interface from the
+user's perspective.
 
-    $ dput server-source /path/to/<package>_source.changes
+In order to upload debian source and binary packages to
+mini-launchpad, you need to configure your `~/.dput.cf` file (See
+[dput
+documentation](http://manpages.ubuntu.com/manpages/xenial/man1/dput.1.html)).
+An example `dput.cf` file is provided with this repository. Update
+your own `~/.dput.cf` file to include the information from
+`dput.cf`. Once updated, you can upload a debian source package with
+the following command:
+
+    $ dput server-ftp-source /path/to/<package>_source.changes
 
 If you want to build a local version of a debian package and upload it directly
 to reprepro (bypassing the mini-launchpad build process), use the following
 dput command:
 
-    $ dput server-binary /path/to/<package>_<arch>.changes
+    $ dput server-ftp-binary /path/to/<package>_<arch>.changes
 
 ## Setup Repository Sources
 

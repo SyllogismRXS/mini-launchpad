@@ -40,5 +40,5 @@ python -u /usr/bin/mini-launchpad --dist ${dist_str} \
                                   --ftp-incoming /root/incoming \
                                   --pbuilder-config /root/.pbuilderrc \
                                   --dput-config /root/.dput.cf \
-                                  --dput-name local-ftp \
+                                  --dput-name local-sftp \
                                   --log-path /root/build-logs

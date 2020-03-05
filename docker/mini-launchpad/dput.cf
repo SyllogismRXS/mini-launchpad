@@ -1,8 +1,8 @@
-[local-ftp]
-fqdn = localhost:8021
-login = anonymous
+[local-sftp]
+fqdn = sftpd-deb-bin
+login = myuser
 progress_indicator = 2
 passive_ftp = 1
-incoming = ./
-method = ftp
+incoming = ./incoming
+method = sftp
 allow_unsigned_uploads = 1

@@ -97,7 +97,11 @@ class MiniLaunchpad (FileSystemEventHandler):
 	# to the package we are preparing to build.
 	for file_type, file_name in pkg_dict.iteritems():
 	    if file_name == pkg_file:
-	          shutil.move(os.path.join(changes_file, file_type), input_files_tmp_dir + "/")
+                try:
+	            shutil.move(os.path.join(changes_file, file_type), input_files_tmp_dir + "/")
+                except:
+                    #print("Ignoring file that doesn't exist: % s" % os.path.join(changes_file, file_type))
+                    pass
 
         self.file_list = []
 

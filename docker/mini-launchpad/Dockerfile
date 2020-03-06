@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y pbuilder ubuntu-dev-tools \
 # Install python packages required by mini-launchpad
 RUN pip install watchdog argparse
 
+RUN apt-get install -y qemu-user-static
+
 # Build newer version of qemu
 RUN wget https://download.qemu.org/qemu-4.2.0.tar.xz \
     && tar xvJf qemu-4.2.0.tar.xz \

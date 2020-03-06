@@ -1,14 +1,32 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER Kevin DeMarco
+SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -y pbuilder ubuntu-dev-tools \
     debootstrap ubuntu-keyring debian-archive-keyring wget build-essential \
-    crossbuild-essential-armhf crossbuild-essential-arm64 qemu-user-static \
-    cmake python systemd python-pip
+    crossbuild-essential-armhf crossbuild-essential-arm64 qemu \
+    cmake python systemd python-pip python3-paramiko zlib1g-dev \
+    pkg-config libglib2.0-dev binutils-dev libboost-all-dev \
+    autoconf libtool libssl-dev libpixman-1-dev libpython-dev \
+    python-capstone virtualenv binutils-dev
 
 # Install python packages required by mini-launchpad
 RUN pip install watchdog argparse
+
+# Build newer version of qemu
+RUN wget https://download.qemu.org/qemu-4.2.0.tar.xz \
+    && tar xvJf qemu-4.2.0.tar.xz \
+    && cd qemu-4.2.0 \
+    && ./configure --prefix=$(cd ..; pwd)/qemu-user-static \
+                   --static \
+		   --disable-system \
+		   --enable-linux-user \
+    && make -j7 \
+    && make install \
+    && cd ../qemu-user-static/bin \
+    && for i in *; do cp $i $i-static; done \
+    && cp * /usr/bin/
 
 # Setup cross-build environment
 RUN wget -qO - http://repos.rcn-ee.net/ubuntu/conf/repos.rcn-ee.net.gpg.key | \
@@ -34,5 +52,4 @@ RUN mkdir -p ./build
 WORKDIR build
 RUN cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make install
 
-RUN apt-get install -y python-paramiko
 CMD ["/root/mini-launchpad/docker/mini-launchpad/start.sh"]
